@@ -3254,8 +3254,7 @@ if(/[?&]diag/.test(location.search)){
                               px(tr.bottom - br.bottom) + 'px' : 'no'),
       'TAB OFFSCREEN    ' + (tr.bottom > innerHeight + 1 ? 'YES  by ' +
                               px(tr.bottom - innerHeight) + 'px' : 'no'),
-    ].join('
-');
+    ].join('\n');
   }
   draw();
   addEventListener('resize', draw);
