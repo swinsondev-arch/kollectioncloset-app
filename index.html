@@ -3212,5 +3212,55 @@ if(window.visualViewport){
   visualViewport.addEventListener('scroll', scheduleRefit);
 }
 
+// ---- ?diag -----------------------------------------------------------
+// Off unless asked for. Prints what the device reports, so a fix can be based
+// on his numbers rather than on a desktop pane that has no browser chrome,
+// no notch and no home indicator.
+if(/[?&]diag/.test(location.search)){
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;background:#111;' +
+    'color:#0f0;font:600 12px/1.45 ui-monospace,Menlo,monospace;padding:10px 12px;' +
+    'white-space:pre;overflow:auto;max-height:62vh;border-bottom:2px solid #0f0';
+  document.body.appendChild(el);
+  const px = n => Math.round(n) + '';
+  const inset = k => getComputedStyle(document.documentElement)
+    .getPropertyValue('--sa' + k).trim() || '?';
+  function draw(){
+    const vv = window.visualViewport;
+    const wrap = document.querySelector('.wrap');
+    const box  = document.querySelector('.screenbox');
+    const tb   = document.getElementById('tabbar');
+    const wr = wrap.getBoundingClientRect(), br = box.getBoundingClientRect(),
+          tr = tb.getBoundingClientRect();
+    const supports = CSS.supports('height','100dvh');
+    el.textContent = [
+      'innerHeight      ' + px(innerHeight),
+      'visualViewport.h ' + (vv ? px(vv.height) : 'none'),
+      'clientHeight     ' + px(document.documentElement.clientHeight),
+      '--apph           ' + (getComputedStyle(document.documentElement)
+                               .getPropertyValue('--apph').trim() || 'unset'),
+      'dvh supported    ' + supports,
+      'insets t/b       ' + inset('t') + ' / ' + inset('b'),
+      '.wrap  pos/h     ' + getComputedStyle(wrap).position + ' ' + px(wr.height),
+      '.screenbox bot   ' + px(br.bottom),
+      '.tabbar top/bot  ' + px(tr.top) + ' / ' + px(tr.bottom),
+      '.tabbar height   ' + px(tr.height),
+      'TAB CLIPPED      ' + (tr.bottom > br.bottom + 1 ? 'YES  by ' +
+                              px(tr.bottom - br.bottom) + 'px' : 'no'),
+      'TAB OFFSCREEN    ' + (tr.bottom > innerHeight + 1 ? 'YES  by ' +
+                              px(tr.bottom - innerHeight) + 'px' : 'no'),
+    ].join('
+');
+  }
+  draw();
+  addEventListener('resize', draw);
+  addEventListener('scroll', draw);
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize', draw);
+    visualViewport.addEventListener('scroll', draw);
+  }
+  setInterval(draw, 500);
+}
+
 paintBrowse(); paintStats(); paintAccount(); paintOwnerHub(); go('home');
 </script>
