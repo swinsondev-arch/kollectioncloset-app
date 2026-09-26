@@ -1,0 +1,3208 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<!-- Added to a home screen this opens with no browser chrome. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KollectionCloset">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- Kept in step with the current screen by go(), so the browser bar
+     never sits as a white strip above the near-black hero. -->
+<meta name="theme-color" id="tcolor" content="#101311">
+<title>KollectionCloset</title>
+<!-- The reason this mark was chosen: it is still legible here. Slightly heavier
+     stroke than the hero version, because 16px forgives nothing. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23c9a96a' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M32 26V21a5.5 5.5 0 1 0-5.5-5.5'/%3E%3Cpath d='M32 26 8.5 45.5h47L32 26Z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    /* Neutrals carry a slight green bias, borrowed from the accept colour, so
+       the greys read as chosen rather than inherited. */
+    --ink:        #101311;
+    --ink-2:      #1b201d;
+    --ink-3:      #2a312d;
+    --paper:      #ffffff;
+    --paper-2:    #f4f6f4;
+    --line:       #e0e4e1;
+    --text:       #101311;
+    --text-2:     #5f6b64;
+    --text-3:     #8b958f;
+    --accept:     #0c7a46;
+    --accept-bg:  #e8f5ee;
+    --reject:     #c8202a;
+    --reject-bg:  #fdeced;
+    --unsure:     #a06510;
+    --unsure-bg:  #fdf3e3;
+    --stage:      #eceeec;
+    --stage-2:    #ffffff;
+    --shadow:     0 1px 2px rgba(16,19,17,.06), 0 8px 24px rgba(16,19,17,.08);
+    --radius:     14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#171b19; --paper-2:#1f2422; --line:#2e3532;
+      --text:#eef1ef; --text-2:#a3aca7; --text-3:#78827c;
+      --accept:#3cc47e; --accept-bg:#11301f;
+      --reject:#f06a6f; --reject-bg:#321418;
+      --unsure:#e0a343; --unsure-bg:#2e2313;
+      --stage:#0c0e0d; --stage-2:#141816;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#171b19; --paper-2:#1f2422; --line:#2e3532;
+    --text:#eef1ef; --text-2:#a3aca7; --text-3:#78827c;
+    --accept:#3cc47e; --accept-bg:#11301f;
+    --reject:#f06a6f; --reject-bg:#321418;
+    --unsure:#e0a343; --unsure-bg:#2e2313;
+    --stage:#0c0e0d; --stage-2:#141816;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  /* Safe-area insets as variables. These are only non-zero because the
+     viewport meta carries viewport-fit=cover - without that flag env()
+     resolves to 0 and the hero sits under the notch. */
+  :root{
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+  }
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--stage); color:var(--text);
+    font:400 15px/1.5 'Figtree', system-ui, -apple-system, Segoe UI, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    /* No rubber-band on iOS, no pull-to-refresh on Android, no blue flash on
+       tap, no long-press selection. These four are most of what makes a web
+       page feel like a web page on a phone. */
+    overscroll-behavior:none;
+    -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* Except where somebody genuinely needs to copy something out. */
+  input, textarea, select, .refcode, #label-ref, .boxrow .nm, .sr-tx b{
+    -webkit-user-select:text; user-select:text}
+  .wrap{max-width:1080px; margin:0 auto; padding-block:28px 56px; padding-left:16px; padding-right:16px}
+
+  /* ---------- page furniture (not part of the app) ---------- */
+  .masthead{display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+            justify-content:space-between; margin-bottom:20px}
+  .masthead h1{font:600 30px/1.08 'Fraunces', Georgia, serif; font-variation-settings:'SOFT' 45,'WONK' 1; letter-spacing:-.018em;
+               letter-spacing:.01em; margin:0; text-wrap:balance}
+  .masthead h1 span{color:var(--text-3)}
+  .masthead p{margin:6px 0 0; color:var(--text-2); max-width:56ch; font-size:14px}
+  .note{background:var(--stage-2); border:1px solid var(--line); border-radius:12px;
+        padding:14px 16px; font-size:13.5px; color:var(--text-2); max-width:62ch}
+  .note b{color:var(--text); font-weight:600}
+
+  .jump{display:flex; flex-wrap:wrap; gap:7px; margin:22px 0 18px}
+  .jump button{font:500 12.5px/1 'Figtree', sans-serif; letter-spacing:.02em;
+    padding:8px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--stage-2); color:var(--text-2)}
+  .jump button:hover{color:var(--text); border-color:var(--text-3)}
+  .jump button[aria-current="true"]{background:var(--ink); border-color:var(--ink); color:#fff}
+  :root[data-theme="dark"] .jump button[aria-current="true"]{background:var(--text); color:var(--stage)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .jump button[aria-current="true"]{background:var(--text); color:var(--stage)}
+    :root:not([data-theme="light"]) .chips button[aria-pressed="true"]{background:var(--text); color:var(--stage)}
+  }
+
+  .stagerow{display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap}
+
+  /* ---------- the phone ---------- */
+  .phone{
+    width:390px; height:790px; flex:0 0 auto;
+    background:var(--ink); border-radius:44px; padding:11px;
+    box-shadow:0 2px 6px rgba(0,0,0,.2), 0 30px 70px rgba(16,19,17,.22);
+    position:sticky; top:20px;
+  }
+  .screenbox{position:relative; width:100%; height:100%; border-radius:34px;
+             overflow:hidden; background:var(--paper); display:flex; flex-direction:column}
+  @media (max-width:760px){
+    .phone{width:100%; max-width:420px; height:min(790px,82vh); padding:0;
+           border-radius:20px; position:static; box-shadow:var(--shadow)}
+    .screenbox{border-radius:20px}
+    .sidenotes{max-width:none}
+  }
+
+  .statusbar{display:flex; justify-content:space-between; align-items:center;
+    padding:11px 22px 4px; font:600 13px/1 'Figtree', sans-serif; flex:0 0 auto}
+  .statusbar .dots{letter-spacing:2px; font-size:11px}
+
+  .navbar{display:flex; align-items:center; gap:10px; flex:0 0 auto;
+    padding:calc(8px + var(--sat)) calc(16px + var(--sar)) 12px calc(16px + var(--sal))}
+  .navbar .back{width:30px; height:30px; border:0; background:none; cursor:pointer;
+    color:inherit; font-size:20px; line-height:1; padding:0; border-radius:8px}
+  .navbar .ttl{font:600 15px/1 'Figtree', sans-serif; flex:1; text-align:center}
+  .navbar .spacer{width:30px}
+
+  .body{flex:1 1 auto; overflow-y:auto; overflow-x:hidden;
+    -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  .pad{padding:0 18px 18px}
+
+  .tabbar{flex:0 0 auto; display:grid; grid-template-columns:repeat(4,1fr);
+    border-top:1px solid var(--line); background:var(--paper);
+    padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px))}
+  .tabbar button{border:0; background:none; cursor:pointer; padding:4px 0;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    font:600 11.5px/1 'Figtree', sans-serif; color:var(--text-3)}
+  .tabbar button[aria-current="true"]{color:var(--text)}
+  .tabbar svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.7}
+
+  /* ---------- screens ---------- */
+  .screen{display:none; flex-direction:column; height:100%}
+  .screen.on{display:flex}
+
+  /* The hidden attribute loses to any author rule that sets display, and half
+     the components here set display:flex. This was working only because the
+     preview host injects its own [hidden] rule - on a plain static host the box
+     card showed up empty, reading "Your box - 0". */
+  [hidden]{display:none !important}
+
+  /* 1 — home */
+  /* Four tiers of weight, not six rows of one. The box only exists sometimes and
+     outranks everything when it does; then the one thing the app is FOR; then
+     two ways of doing the same job; then reference, which nobody opens twice. */
+  .home{background:var(--ink); color:#f3f6f4; height:100%;
+        display:flex; flex-direction:column}
+  /* A lit background, not a striped one. One warm bloom off-centre and a second
+     cool one low down, over near-black - the pinstripes read as texture applied
+     to a flat colour, which is what made it look cheap. Grain goes on top at a
+     few percent so the gradient never bands on an OLED phone. */
+  .hero{position:relative; text-align:center; overflow:hidden; background:#080a09;
+        padding:calc(28px + var(--sat)) calc(22px + var(--sar)) 22px calc(22px + var(--sal))}
+  .hero::before{content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(75% 55% at 26% 4%,  rgba(212,175,110,.20) 0%, transparent 62%),
+      radial-gradient(85% 60% at 78% 14%, rgba(24,122,78,.32)  0%, transparent 66%),
+      radial-gradient(120% 90% at 50% 120%, rgba(12,58,38,.55) 0%, transparent 70%),
+      linear-gradient(180deg,#0d110f 0%,#080a09 100%);
+    /* Scaled past the edges so the drift never exposes a corner. One slow
+       cycle; the point is that the light is not painted on. */
+    animation:heroDrift 30s ease-in-out infinite alternate;
+  }
+  @keyframes heroDrift{
+    from{ transform:scale(1.05) translate3d(-1.2%,-0.8%,0) }
+    to  { transform:scale(1.11) translate3d( 1.6%, 1.1%,0) }
+  }
+  /* Self-contained grain: an SVG turbulence as a data URI, so nothing is fetched
+     and it cannot break on a host that blocks third parties. */
+  .hero::after{content:""; position:absolute; inset:0; opacity:.055;
+    pointer-events:none; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .hero > *{position:relative}
+
+  /* The mark is a clothing tag, because that is literally what the app reads.
+     Drawn rather than typed so it holds up as a favicon and an app icon. */
+  .mark{position:relative; width:84px; height:84px; margin:0 auto}
+  .mark svg{width:100%; height:100%; display:block; overflow:visible}
+  /* pathLength="1" in the markup normalises both shapes, so a single dash
+     value draws the outline and the hole alike. */
+  .mark .hk-hook, .mark .hk-body{
+    fill:none; stroke:#c9a96a; stroke-width:3.4;
+    stroke-linecap:round; stroke-linejoin:round}
+  /* A slow bloom behind the tag, so the lockup is lit rather than printed. */
+  .mark::before{content:""; position:absolute; inset:-30%; border-radius:50%;
+    pointer-events:none; opacity:0;
+    background:radial-gradient(circle, rgba(201,169,106,.24) 0%, transparent 68%);
+    animation:markGlow 7s ease-in-out 1.2s infinite}
+  @keyframes markGlow{
+    0%,100%{ opacity:.45; transform:scale(.95) }
+    50%    { opacity:.9;  transform:scale(1.07) }
+  }
+
+  /* ---- the entrance ----------------------------------------------------
+     Scoped to .home.intro, which JS removes once it has played. The box card
+     and the account row are hidden at load and un-hide later; if they kept
+     these delays, adding an item would leave a gap on screen for two seconds
+     before the card faded up. */
+  /* The opening beat. The mark and the name arrive together and alone -
+     nothing else on the screen moves until both are up. */
+  .home.intro .mark{opacity:0;
+    animation:markFade .8s cubic-bezier(.2,.7,.25,1) .15s forwards}
+  @keyframes markFade{
+    from{ opacity:0; transform:scale(.94) }
+    to  { opacity:1; transform:none }
+  }
+  /* The name fades and closes its tracking at the same time, .34em down to
+     the .26em it sits at. The letters drift together as they arrive. */
+  .home.intro .wordmark{opacity:0;
+    animation:nameFade .82s cubic-bezier(.2,.7,.25,1) .3s forwards}
+  @keyframes nameFade{
+    from{ opacity:0; letter-spacing:.34em }
+    to  { opacity:1; letter-spacing:.26em }
+  }
+
+  /* ...and once it is up, it settles, as if it had just been hung. Rotating
+     about the hook, not the centre: that is what separates a swing from a
+     wobble. The amplitude decays, because a constant one reads as a GIF. */
+  .home.intro .mark svg{transform-origin:50% 16%;
+    animation:hangerSwing 2.1s cubic-bezier(.4,0,.5,1) .95s both}
+  @keyframes hangerSwing{
+    0%  { transform:rotate(0deg) }
+    14% { transform:rotate(4.6deg) }
+    34% { transform:rotate(-3.1deg) }
+    54% { transform:rotate(1.9deg) }
+    72% { transform:rotate(-1deg) }
+    88% { transform:rotate(.42deg) }
+    100%{ transform:rotate(0deg) }
+  }
+
+  /* Everything after the brand, pushed back so the opening beat is not
+     competing with a screenful of cards sliding in behind it. */
+  .home.intro .headline, .home.intro .lede,
+  .home.intro .herostat, .home.intro .cta, .home.intro .tiles,
+  .home.intro .quiet{opacity:0; animation:riseIn .6s cubic-bezier(.2,.7,.25,1) forwards}
+  .home.intro .headline{animation-delay:1.28s}
+  .home.intro .lede    {animation-delay:1.42s}
+  .home.intro .herostat{animation-delay:1.54s}
+  .home.intro .cta     {animation-delay:1.66s}
+  .home.intro .tiles   {animation-delay:1.76s}
+  .home.intro .quiet   {animation-delay:1.86s}
+  @keyframes riseIn{
+    from{ opacity:0; transform:translateY(10px) }
+    to  { opacity:1; transform:none }
+  }
+  /* The rule opens from the middle rather than rising - it is a line, and a
+     line that grows reads as drawn. */
+  .home.intro .rule{transform:scaleX(0); transform-origin:center;
+    animation:ruleOpen .58s cubic-bezier(.2,.7,.25,1) 1.15s forwards}
+  @keyframes ruleOpen{ to{ transform:scaleX(1) } }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero::before, .mark::before,
+    .home.intro .mark, .home.intro .mark svg, .home.intro .wordmark, .home.intro .headline, .home.intro .lede,
+    .home.intro .herostat, .home.intro .cta, .home.intro .tiles,
+    .home.intro .quiet, .home.intro .rule{
+      animation:none !important; opacity:1 !important; transform:none !important;
+      stroke-dashoffset:0 !important}
+    .mark::before{opacity:.5 !important}
+  }
+
+  /* Letterspaced small caps under a hairline: the lockup every fashion house
+     uses, and it costs nothing. */
+  /* 18px at .26em measures 255px of glyphs in 346px of room - clearly bigger
+     than the 12px it started at, with ~90px still spare at 390 wide. */
+  .wordmark{margin:16px 0 0; color:#f6f1e6;
+    font:600 18px/1 'Figtree', sans-serif; letter-spacing:.26em; text-transform:uppercase}
+  .wordmark em{font-style:normal; color:#c9a96a}
+  .rule{display:block; width:42px; height:1px; margin:11px auto 0;
+    background:linear-gradient(90deg, transparent, rgba(201,169,106,.85), transparent)}
+
+  .headline{margin:14px 0 0; color:#f6f1e6;
+    font:500 27px/1.1 'Fraunces', Georgia, serif; font-variation-settings:'SOFT' 45,'WONK' 1; letter-spacing:-.012em}
+  .lede{margin:11px auto 0; max-width:32ch; color:#9fada6; font-size:13px; line-height:1.58}
+  .herostat{margin:13px 0 0; font:500 10.5px/1 'Figtree', sans-serif;
+    letter-spacing:.17em; text-transform:uppercase; color:#7b8881}
+  .herostat b{color:#c9a96a}
+
+  .menu{padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px}
+
+  /* One lighting model for all four cards. The inset hairline along the top
+     edge is doing most of the work: on a near-black screen it is the whole
+     difference between a panel and a painted rectangle. */
+  .boxcard, .cta, .tile, .acctrow{
+    transition:transform .12s ease, border-color .14s ease, box-shadow .14s ease}
+  .boxcard:active, .cta:active, .tile:active, .acctrow:active{transform:scale(.978)}
+  @media (prefers-reduced-motion: reduce){
+    .boxcard, .cta, .tile, .acctrow{transition:none}
+    .boxcard:active, .cta:active, .tile:active, .acctrow:active{transform:none}
+  }
+
+  /* Stateful, so it gets the one saturated colour on the screen. */
+  .boxcard{display:flex; align-items:center; gap:12px; width:100%; cursor:pointer;
+    background:linear-gradient(180deg,#176b41,#0c4728); border:1px solid #23884f;
+    border-radius:14px; padding:14px; color:#eafff3; text-align:left;
+    font-family:inherit;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15), 0 6px 18px rgba(0,0,0,.34)}
+  .boxcard:hover{border-color:#2ba05f}
+  .boxcard .bc-ic{width:34px; height:34px; border-radius:10px; flex:0 0 auto;
+    background:rgba(255,255,255,.14); display:grid; place-items:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
+  .boxcard .bc-ic svg{width:18px; height:18px; stroke:#eafff3; fill:none; stroke-width:1.7}
+  .boxcard .bc-tx{flex:1; min-width:0}
+  .boxcard .bc-tx b{display:block; font:700 17px/1.3 'Figtree', sans-serif;
+    letter-spacing:-.014em}
+  .boxcard .bc-tx small{display:block; font-size:12.5px; margin-top:2px; color:#abdcc3}
+  .boxcard .bc-go{font-size:19px; color:#8fcdae; flex:0 0 auto}
+
+  /* The one thing the app is for, so it is the only white object on the screen
+     and it is lit like a physical key: bright along the top, shadowed below. */
+  .cta{display:flex; align-items:center; justify-content:center; gap:10px;
+    background:linear-gradient(180deg,#ffffff 0%,#edf0ee 100%); color:#101311;
+    border:0; border-radius:14px; cursor:pointer; padding:21px 18px;
+    font:700 21px/1 'Figtree', sans-serif; letter-spacing:-.019em; width:100%;
+    box-shadow:0 10px 26px rgba(0,0,0,.44),
+               inset 0 1px 0 rgba(255,255,255,.96),
+               inset 0 -1px 0 rgba(16,19,17,.07)}
+  /* width/height are attributes on the element, so they need overriding here
+     rather than in the markup - an 18px glyph next to 20px type looks lost. */
+  .cta svg{opacity:.82; width:21px; height:21px; flex:0 0 auto}
+
+  /* Two ways to do one job, so they sit side by side rather than stacking into
+     a list that implies a sequence. */
+  .tiles{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  /* Centred, because a centred icon above left-aligned text lines up with
+     nothing. */
+  .tile{background:linear-gradient(180deg,#242b27,#191e1b);
+    border:1px solid #333b36; border-radius:14px;
+    padding:16px 13px 15px; color:#f3f6f4; text-align:center; cursor:pointer;
+    font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:3px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.055), 0 4px 12px rgba(0,0,0,.26)}
+  .tile:hover{border-color:#44504a}
+  /* The chip IS the svg - padding, a background and a radius, no extra element.
+     18 + 14 + 2 = 34px, the same size as the box card's, which is the point. */
+  .tile svg{width:19px; height:19px; stroke:#8fcdae; fill:none; stroke-width:1.8;
+    box-sizing:content-box; padding:8px; border-radius:11px; margin-bottom:11px;
+    background:rgba(143,205,174,.10); border:1px solid rgba(143,205,174,.15)}
+  .tile b{font:700 17px/1.2 'Figtree', sans-serif; letter-spacing:-.014em}
+  .tile small{color:#9aa6a0; font-size:12.5px}
+
+  /* Same family as the tiles, quieter than the box card - an account matters,
+     but it is not what somebody opened the app to do. */
+  .acctrow{display:flex; align-items:center; gap:12px; width:100%; cursor:pointer;
+    background:linear-gradient(180deg,#232925,#191e1b); border:1px solid #333b36;
+    border-radius:14px; padding:13px; color:#f3f6f4; text-align:left;
+    font-family:inherit;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 4px 12px rgba(0,0,0,.24)}
+  .acctrow:hover{border-color:#44504a}
+  .acctrow .ar-ic{width:32px; height:32px; border-radius:10px; flex:0 0 auto;
+    background:rgba(143,205,174,.10); border:1px solid rgba(143,205,174,.15);
+    display:grid; place-items:center}
+  .acctrow .ar-ic svg{width:17px; height:17px; stroke:#8fcdae; fill:none; stroke-width:1.7}
+  .acctrow .ar-tx{flex:1; min-width:0}
+  .acctrow .ar-tx b{display:block; font:700 16px/1.3 'Figtree', sans-serif;
+    letter-spacing:-.014em}
+  .acctrow .ar-tx small{display:block; color:#98a49d; font-size:12.5px; margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .acctrow .ar-go{font-size:18px; color:#68746d; flex:0 0 auto}
+
+  /* Reference, which nobody opens twice - so these stay text, but they get
+     enough room to be tappable and a hit area you can see. */
+  .quiet{display:flex; align-items:center; justify-content:center; gap:3px;
+    margin-top:8px; flex-wrap:wrap}
+  .quiet button{background:none; border:0; cursor:pointer; padding:8px 10px;
+    border-radius:9px; color:#9aa7a1; font:500 14.5px/1 'Figtree', sans-serif;
+    font-family:inherit; transition:color .12s ease, background .12s ease}
+  .quiet button:hover{color:#e4eae7; background:rgba(255,255,255,.055)}
+  .quiet span{color:#454e49; font-size:11px}
+
+  /* 2 — camera */
+  .cam{background:#000; color:#fff; height:100%; display:flex; flex-direction:column}
+  .camview{flex:1; position:relative; overflow:hidden; background:#0b0d0c}
+  .camview video, .camview img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .camhint{position:absolute; left:0; right:0; bottom:14px; text-align:center;
+    font-size:12px; color:#c9d2cd; text-shadow:0 1px 3px #000; padding:0 24px}
+  .reticle{position:absolute; inset:16% 12%; pointer-events:none}
+  .reticle span{position:absolute; width:34px; height:34px; border:2.5px solid #fff;
+    opacity:.92; filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+  .reticle span:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}
+  .reticle span:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+  .reticle span:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}
+  .reticle span:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+  .camctl{flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; gap:10px; padding:16px 26px calc(20px + env(safe-area-inset-bottom,0px))}
+  .camctl .side{display:flex; flex-direction:column; align-items:center; gap:5px;
+    font:500 10.5px/1 'Figtree', sans-serif; color:#c9d2cd; background:none; border:0;
+    cursor:pointer; padding:6px}
+  .camctl .side svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.7}
+  .shutter{width:66px; height:66px; border-radius:50%; background:#fff;
+    border:4px solid rgba(255,255,255,.35); cursor:pointer; padding:0}
+  .shutter:active{transform:scale(.94)}
+
+  /* 3 — scanning */
+  .scanning{height:100%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:22px; padding:0 30px; text-align:center}
+  .pulse{width:112px; height:112px; border-radius:50%; display:grid; place-items:center;
+    border:2px solid var(--accept); color:var(--accept); position:relative}
+  .pulse::after{content:""; position:absolute; inset:-14px; border-radius:50%;
+    border:2px solid var(--accept); opacity:.28; animation:ring 1.6s ease-out infinite}
+  @keyframes ring{0%{transform:scale(.86);opacity:.5} 100%{transform:scale(1.12);opacity:0}}
+  .pulse svg{width:44px; height:44px; stroke:currentColor; fill:none; stroke-width:1.5}
+  .scanning h3{font:600 17px/1.3 'Figtree', sans-serif; margin:0}
+  .steps{display:flex; flex-direction:column; gap:11px; align-items:flex-start;
+    font-size:13.5px; color:var(--text-2)}
+  .steps div{display:flex; gap:9px; align-items:center; opacity:.3; transition:opacity .25s}
+  .steps div.done{opacity:1; color:var(--text)}
+  .tick{width:17px; height:17px; border-radius:50%; background:var(--accept); flex:0 0 auto;
+    display:grid; place-items:center}
+  .tick svg{width:10px; height:10px; stroke:#fff; fill:none; stroke-width:3}
+
+  /* 4/5/6 — verdicts */
+  .verdict{display:flex; align-items:center; gap:13px; padding:17px 18px;
+    color:#fff; font:700 16px/1.2 'Figtree', sans-serif; letter-spacing:.01em}
+  .verdict.yes{background:var(--accept)} .verdict.no{background:var(--reject)}
+  .verdict .mk{width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2);
+    display:grid; place-items:center; flex:0 0 auto}
+  .verdict .mk svg{width:18px; height:18px; stroke:#fff; fill:none; stroke-width:3}
+
+  .brandhead{padding:26px 18px 18px; text-align:center; border-bottom:1px solid var(--line)}
+  .brandname{font:600 34px/1.02 'Fraunces', Georgia, serif; font-variation-settings:'SOFT' 45,'WONK' 1; margin:0;
+    letter-spacing:-.018em; text-wrap:balance}
+  .brandsub{margin:7px 0 0; font:500 11px/1 'Figtree', sans-serif; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--text-3)}
+
+  .facts{list-style:none; margin:0; padding:0}
+  .facts li{display:grid; grid-template-columns:104px 1fr; gap:14px; padding:12px 18px;
+    border-bottom:1px solid var(--line); font-size:14px; align-items:start}
+  .facts dt, .facts .k{color:var(--text-2); font-size:12.5px; padding-top:1px}
+  .facts .v{font-weight:500}
+
+  .callout{margin:16px 18px; padding:13px 14px; border-radius:11px; font-size:13px;
+    display:flex; gap:10px; align-items:flex-start; line-height:1.45}
+  .callout.info{background:var(--accept-bg); color:var(--accept)}
+  .callout.warn{background:var(--reject-bg); color:var(--reject)}
+  .callout.amber{background:var(--unsure-bg); color:var(--unsure)}
+  .callout b{display:block; margin-bottom:2px}
+  .callout svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; flex:0 0 auto; margin-top:1px}
+
+  .btn{display:block; width:100%; padding:14px; border-radius:11px; cursor:pointer;
+    font:600 14.5px/1 'Figtree', sans-serif; border:1px solid transparent; text-align:center}
+  .btn.primary{background:var(--accept); color:#fff}
+  .btn.danger{background:var(--reject); color:#fff}
+  .btn.ghost{background:var(--paper); color:var(--text); border-color:var(--line)}
+  .btnstack{padding:4px 18px 20px; display:flex; flex-direction:column; gap:9px}
+
+  .unsure{height:100%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:15px; padding:0 26px; text-align:center}
+  .unsure .mk{width:56px; height:56px; border-radius:50%; background:var(--unsure-bg);
+    color:var(--unsure); display:grid; place-items:center}
+  .unsure .mk svg{width:27px; height:27px; stroke:currentColor; fill:none; stroke-width:2}
+  .unsure h3{font:600 19px/1.2 'Figtree', sans-serif; margin:0}
+  .unsure p{margin:0; color:var(--text-2); font-size:13.5px; max-width:30ch}
+  .shot{width:170px; aspect-ratio:4/3; max-width:100%; border-radius:10px; object-fit:cover;
+    border:1px solid var(--line); background:var(--paper-2)}
+
+  /* 7 — browse */
+  .search{position:relative; margin:2px 18px 12px}
+  .search input{width:100%; padding:11px 13px 11px 36px; border-radius:10px;
+    border:1px solid var(--line); background:var(--paper-2); color:var(--text);
+    font:400 14px/1 'Figtree', sans-serif}
+  .search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:15px; height:15px; stroke:var(--text-3); fill:none; stroke-width:2}
+  .chips{display:flex; gap:7px; overflow-x:auto; padding:0 18px 13px; scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:0 0 auto; padding:7px 13px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--paper); color:var(--text-2);
+    font:500 12.5px/1 'Figtree', sans-serif}
+  .chips button[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff}
+  :root[data-theme="dark"] .chips button[aria-pressed="true"]{background:var(--text); color:var(--stage)}
+
+  .blist{list-style:none; margin:0; padding:0}
+  .blist li{display:flex; align-items:center; gap:12px; padding:12px 18px;
+    border-bottom:1px solid var(--line); cursor:pointer}
+  .blist li:hover{background:var(--paper-2)}
+  .mono{width:38px; height:38px; border-radius:9px; flex:0 0 auto; display:grid;
+    place-items:center; background:var(--paper-2); border:1px solid var(--line);
+    font:700 13px/1 'Figtree', sans-serif; color:var(--text-2); letter-spacing:-.02em}
+  .blist .tx{flex:1; min-width:0}
+  .blist .tx b{display:block; font:600 14px/1.3 'Figtree', sans-serif;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .blist .tx small{color:var(--text-3); font-size:11.5px}
+  .badge{flex:0 0 auto; padding:4px 9px; border-radius:999px;
+    font:600 11px/1 'Figtree', sans-serif; letter-spacing:.02em}
+  .badge.yes{background:var(--accept-bg); color:var(--accept)}
+  .badge.no{background:var(--reject-bg); color:var(--reject)}
+  .empty{padding:36px 24px; text-align:center; color:var(--text-3); font-size:13.5px}
+
+  .fieldset{padding:2px 18px 18px; display:flex; flex-direction:column; gap:11px}
+  label.f{display:block; font:500 11.5px/1 'Figtree', sans-serif; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text-3); margin-bottom:5px}
+  .fieldset input, .fieldset select, .fieldset textarea{width:100%; padding:10px 12px;
+    border-radius:9px; border:1px solid var(--line); background:var(--paper);
+    color:var(--text); font:400 14px/1.4 'Figtree', sans-serif}
+  .fieldset textarea{resize:vertical; min-height:62px}
+  .seg{display:grid; grid-template-columns:1fr 1fr; gap:7px}
+  .seg button{padding:11px; border-radius:9px; cursor:pointer; border:1px solid var(--line);
+    background:var(--paper); color:var(--text-2); font:600 13.5px/1 'Figtree', sans-serif}
+  .seg button[aria-pressed="true"].y{background:var(--accept); border-color:var(--accept); color:#fff}
+  .seg button[aria-pressed="true"].n{background:var(--reject); border-color:var(--reject); color:#fff}
+
+  /* manual entry */
+  .typeahead{position:relative}
+  .suggest{position:absolute; left:0; right:0; top:calc(100% + 5px); z-index:4;
+    background:var(--paper); border:1px solid var(--line); border-radius:11px;
+    box-shadow:var(--shadow); overflow:hidden; max-height:236px; overflow-y:auto}
+  .suggest button{display:flex; width:100%; align-items:center; gap:10px; padding:10px 13px;
+    border:0; border-bottom:1px solid var(--line); background:none; cursor:pointer;
+    text-align:left; color:var(--text); font:400 14px/1.3 'Figtree', sans-serif}
+  .suggest button:last-child{border-bottom:0}
+  .suggest button:hover{background:var(--paper-2)}
+  .suggest .nm{flex:1; font-weight:500}
+  .suggest .dot{width:7px; height:7px; border-radius:50%; flex:0 0 auto}
+  .suggest .dot.yes{background:var(--accept)} .suggest .dot.no{background:var(--reject)}
+  .suggest .none{padding:12px 13px; font-size:13px; color:var(--text-2); line-height:1.5}
+
+  .typechips{display:flex; flex-wrap:wrap; gap:7px}
+  .typechips button{padding:9px 13px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:var(--paper); color:var(--text-2);
+    font:500 13px/1 'Figtree', sans-serif}
+  .typechips button[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:#fff}
+  :root[data-theme="dark"] .typechips button[aria-pressed="true"]{background:var(--text); color:var(--stage)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .typechips button[aria-pressed="true"]{background:var(--text); color:var(--stage)}
+  }
+
+  .verdict.maybe{background:var(--unsure)}
+  .verdict.unknown{background:var(--ink-2)}
+
+  .refgrid{display:flex; flex-wrap:wrap; gap:8px}
+  .refthumb{position:relative; width:62px; height:62px; border-radius:9px; overflow:hidden;
+    border:1px solid var(--line); background:var(--paper-2); flex:0 0 auto}
+  .refthumb img{width:100%; height:100%; object-fit:cover; display:block}
+  .refthumb button{position:absolute; top:2px; right:2px; width:18px; height:18px;
+    border-radius:50%; border:0; background:rgba(16,19,17,.78); color:#fff; cursor:pointer;
+    font:700 11px/1 'Figtree', sans-serif; padding:0; display:grid; place-items:center}
+  .refadd{width:62px; height:62px; border-radius:9px; border:1.5px dashed var(--line);
+    background:none; color:var(--text-3); cursor:pointer; font:600 20px/1 'Figtree', sans-serif;
+    flex:0 0 auto}
+  .refadd:hover{border-color:var(--text-3); color:var(--text-2)}
+  .refcount{font:500 11px/1 'Figtree', sans-serif; color:var(--text-3); padding:3px 7px;
+    border-radius:999px; background:var(--paper-2); border:1px solid var(--line); flex:0 0 auto}
+  .refcount.none{color:var(--unsure); border-color:var(--unsure); background:var(--unsure-bg)}
+
+
+
+
+
+  /* the lock */
+  .tabbar[data-tabs="3"]{grid-template-columns:repeat(3,1fr)}
+
+  .pinpad{height:100%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:22px; padding:0 30px}
+  .pinpad h3{margin:0; font:600 17px/1.2 'Figtree', sans-serif}
+  .pinpad .why{margin:0; font-size:12.5px; color:var(--text-3); text-align:center; max-width:28ch}
+  
+  .about{padding:4px 18px 18px}
+  /* Nothing hides behind this any more - it is just a version line. The
+     un-selectable styling stays because it is chrome, not content. */
+  .about .ver{margin-top:26px; text-align:center; color:var(--text-3); font-size:11.5px;
+    user-select:none; -webkit-user-select:none; cursor:default}
+
+  .setsec{padding:16px 18px; border-bottom:1px solid var(--line)}
+  .setsec h4{margin:0 0 4px; font:600 11.5px/1 'Figtree', sans-serif; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--text-3)}
+  .setsec p{margin:0 0 11px; font-size:12.5px; color:var(--text-2); line-height:1.5}
+  .setsec textarea{width:100%; min-height:88px; padding:10px 12px; border-radius:9px;
+    border:1px solid var(--line); background:var(--paper-2); color:var(--text);
+    font:400 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize:vertical}
+  .setsec .btn{margin-top:8px}
+  .setrow{display:flex; gap:8px}
+  .setrow .btn{flex:1}
+
+  .qcard{display:flex; gap:12px; padding:13px 18px; border-bottom:1px solid var(--line);
+    align-items:center}
+  .qcard img{width:74px; height:74px; object-fit:cover; border-radius:9px;
+    border:1px solid var(--line); flex:0 0 auto; background:var(--paper-2)}
+  .qcard .qx{flex:1; min-width:0; display:flex; flex-direction:column; gap:7px}
+  .qcard select{width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper); color:var(--text); font:400 13.5px/1 'Figtree', sans-serif}
+  .qcard .qbtns{display:flex; gap:6px}
+  .qcard .qbtns button{flex:1; padding:8px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--line); background:var(--paper); color:var(--text);
+    font:600 12.5px/1 'Figtree', sans-serif}
+  .qcard .qbtns button.go{background:var(--accept); border-color:var(--accept); color:#fff}
+
+  .reqcount{margin-left:6px; padding:2px 7px; border-radius:999px; background:var(--unsure);
+    color:#fff; font:700 11px/1.5 'Figtree', sans-serif}
+  .reqlist{list-style:none; margin:0; padding:0}
+  .reqlist li{display:flex; align-items:center; gap:11px; padding:11px 18px;
+    border-bottom:1px solid var(--line)}
+  .reqlist .tx{flex:1; min-width:0}
+  .reqlist .tx b{display:block; font:600 14px/1.3 'Figtree', sans-serif}
+  .reqlist .tx small{color:var(--text-3); font-size:11.5px}
+  .reqlist button{flex:0 0 auto; padding:7px 11px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--line); background:var(--paper); color:var(--text);
+    font:600 12px/1 'Figtree', sans-serif}
+
+  /* manual-entry sheet */
+  .sheet{position:absolute; inset:0; background:rgba(16,19,17,.55); display:none;
+    align-items:flex-end; z-index:5}
+  .sheet.on{display:flex}
+  .sheetcard{background:var(--paper); width:100%; border-radius:20px 20px 0 0;
+    padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px)); max-height:86%; overflow-y:auto}
+  .sheetcard h4{margin:0 0 4px; font:600 16px/1.2 'Figtree', sans-serif}
+  .sheetcard p{margin:0 0 14px; font-size:13px; color:var(--text-2)}
+  .sheetcard textarea{width:100%; min-height:82px; padding:11px 12px; border-radius:10px;
+    border:1px solid var(--line); background:var(--paper-2); color:var(--text);
+    font:400 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; resize:vertical}
+  .samples{display:flex; flex-wrap:wrap; gap:6px; margin:11px 0 15px}
+  .samples button{padding:7px 11px; border-radius:8px; cursor:pointer; border:1px solid var(--line);
+    background:var(--paper-2); color:var(--text-2);
+    font:400 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace}
+  .samples button:hover{color:var(--text); border-color:var(--text-3)}
+
+  /* ---------- side notes ---------- */
+  .sidenotes{flex:1 1 320px; min-width:290px; display:flex; flex-direction:column; gap:16px}
+  .card{background:var(--stage-2); border:1px solid var(--line); border-radius:14px; padding:17px 18px}
+  .card h2{margin:0 0 9px; font:600 12px/1 'Figtree', sans-serif; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--text-3)}
+  .card p{margin:0 0 9px; font-size:13.5px; color:var(--text-2); line-height:1.55}
+  .card p:last-child{margin-bottom:0}
+  .card b{color:var(--text); font-weight:600}
+  .card ul{margin:0; padding-left:17px; font-size:13.5px; color:var(--text-2); line-height:1.6}
+  .card li{margin-bottom:5px}
+  .card li:last-child{margin-bottom:0}
+  .card code{font:400 12.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background:var(--paper-2); padding:2px 5px; border-radius:4px; color:var(--text)}
+  .statline{display:flex; gap:18px; flex-wrap:wrap; padding-top:4px}
+  .statline div{font-size:13px; color:var(--text-2)}
+  .statline b{display:block; font:600 21px/1.1 'Figtree', sans-serif; color:var(--text);
+    font-variant-numeric:tabular-nums}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important}
+  }
+  :focus-visible{outline:2px solid var(--accept); outline-offset:2px; border-radius:6px}
+
+  /* ---- the box: a running pile, not a single answer ---------------------
+     Nobody mails one jacket. Someone clearing a wardrobe checks fifteen things
+     and then ships, so the useful unit is a running list - not a verdict that
+     clears itself every time. There is no threshold and so no meter: a bar
+     with nothing to fill toward implies a rule that does not exist. */
+  .boxmeter{padding:18px 18px 4px}
+  #box-status{margin:10px 0 0;font-size:13px;color:var(--text-2,#5a5750);line-height:1.5}
+  #box-status b{color:var(--text,#1a1917)}
+  .boxrow{display:block;padding:12px 18px;
+          border-bottom:1px solid var(--line,#eceae4)}
+  .br-top{display:flex;align-items:center;gap:12px}
+  .boxrow .nm{flex:1;min-width:0;font-size:14.5px;font-weight:600}
+  /* The per-item choice. Quiet, because most people will leave it alone - but
+     present on every line, because the one person who cares really cares. */
+  .br-meta{display:flex;align-items:stretch;gap:8px;margin-top:10px}
+  /* flex:1 1 0 rather than a max-width, so the two split the row evenly however
+     long the option text is. These are the point of the row - they should not
+     be the smallest thing on it. */
+  .br-meta select{flex:1 1 0;min-width:0;border:1px solid var(--line);
+    background:var(--paper-2);color:var(--text);
+    font:500 13.5px/1.25 'Figtree',sans-serif;font-family:inherit;
+    padding:11px 10px;border-radius:10px;cursor:pointer}
+  .br-hint{display:block;font-size:11px;color:var(--text-3);margin-top:7px}
+  .br-rej{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .br-lb{font-size:11px;color:var(--text-3);margin-right:2px}
+  .br-rej button{border:1px solid var(--line);background:var(--paper);
+    color:var(--text-2);font:500 12.5px/1 'Figtree',sans-serif;
+    padding:8px 13px;border-radius:99px;cursor:pointer;font-family:inherit}
+  .br-rej button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  :root[data-theme="dark"] .br-rej button[aria-pressed="true"]{background:var(--text);color:var(--stage)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .br-rej button[aria-pressed="true"]{background:var(--text);color:var(--stage)}
+  }
+  .boxrow .ct{font-size:12px;color:var(--text-3,#8b8880)}
+  .boxrow .rm{border:0;background:none;cursor:pointer;padding:6px;
+              font-size:18px;line-height:1;color:var(--text-3,#8b8880)}
+  .boxempty{padding:34px 24px;text-align:center;color:var(--text-3,#8b8880);font-size:13.5px}
+
+  .shipwrap,.labelwrap{padding:22px 18px 26px}
+  .shipwrap h3{margin:0 0 6px;font-size:19px}
+  .shipsub{margin:0 0 18px;font-size:13.5px;color:var(--text-2,#5a5750);line-height:1.55}
+  .fieldlab{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+            color:var(--text-3,#8b8880);margin:0 0 6px}
+  .field{width:100%;padding:13px 14px;font-size:16px;border-radius:10px;
+         border:1.5px solid var(--line,#ddd9d1);background:var(--card,#fff);
+         color:inherit;font-family:inherit}
+  .field:focus{outline:none;border-color:var(--accent,#2f6f5e)}
+  .fieldnote{margin:7px 0 0;font-size:12.5px;color:#b5451b}
+  #ship-go{margin-top:16px}
+  .shipfine{margin:14px 0 0;font-size:12px;color:var(--text-3,#8b8880);line-height:1.5}
+
+  .labelwrap{text-align:center}
+  .labeleyebrow{margin:0 0 4px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+                color:var(--text-3,#8b8880)}
+  /* The number is read aloud, written on boxes and quoted in emails, so it is
+     set big and monospaced and uses an alphabet with no 0/O or 1/I/L in it. */
+  .refno{margin:0 0 20px;font:700 30px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;
+         letter-spacing:.06em}
+  .qrbox{display:inline-block;padding:14px;border-radius:14px;background:#fff;
+         box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .qrfine{margin:10px 0 20px;font-size:11.5px;color:var(--text-3,#8b8880)}
+  .labelfacts{text-align:left;border-top:1px solid var(--line,#eceae4);padding-top:14px}
+  .labelfacts div{display:flex;justify-content:space-between;gap:14px;
+                  padding:7px 0;font-size:13.5px}
+  .labelfacts span:first-child{color:var(--text-3,#8b8880)}
+  .labelfacts span:last-child{font-weight:600;text-align:right}
+
+  /* ---- damage guide ----------------------------------------------------
+     Verdicts, not advice. "Check for pilling" tells somebody nothing; a row
+     that ends in No tells them whether to put the thing in the box. */
+  .dmgwrap{padding:18px 18px 26px}
+  .dmglede{margin:0 0 20px;font-size:13.5px;line-height:1.6;color:var(--text-2,#5a5750)}
+  .dmglede i{font-style:italic}
+  .dmghead{margin:22px 0 8px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase}
+  .dmghead:first-of-type{margin-top:0}
+  .dmghead.never{color:#b5451b}
+  .dmghead.fine{color:#2f6f5e}
+  .dmghead.depends{color:#9a7b22}
+  .dmg{display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+       border-bottom:1px solid var(--line,#eceae4)}
+  .dmg-tx{flex:1;min-width:0}
+  .dmg-tx b{display:block;font-size:14.5px;margin-bottom:2px}
+  .dmg-tx small{display:block;font-size:12.5px;line-height:1.5;color:var(--text-3,#8b8880)}
+  .dmg-v{flex:0 0 auto;margin-top:2px;padding:3px 9px;border-radius:99px;
+         font:600 11px/1.5 inherit;letter-spacing:.03em}
+  .dmg-v.no{background:#fceee8;color:#b5451b}
+  .dmg-v.yes{background:#e6f2f0;color:#2f6f5e}
+  .dmg-v.maybe{background:#fbf3de;color:#8a6a15}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .dmg-v.no{background:#3a1d12;color:#f0855c}
+    :root:not([data-theme="light"]) .dmg-v.yes{background:#11302e;color:#5fc2b8}
+    :root:not([data-theme="light"]) .dmg-v.maybe{background:#332a12;color:#d8b54e}
+  }
+  .dmgcheck{margin-top:24px;padding:16px 18px;border-radius:12px;
+            background:var(--card-2,rgba(128,128,128,.07))}
+  .dmgcheck h4{margin:0 0 9px;font-size:13px}
+  .dmgcheck ul{margin:0;padding-left:17px}
+  .dmgcheck li{font-size:13px;line-height:1.65;color:var(--text-2,#5a5750)}
+
+  /* Gaps only the client can fill. Flagged rather than left blank, so a draft
+     reads as a question instead of an oversight. */
+  h4.todo{color:#b5451b}
+  h4.todo::before{content:'\26A0\FE0E';margin-right:7px}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) h4.todo{color:#f0855c}
+  }
+
+  .payseg{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:0 0 10px}
+  .payopt{padding:11px 4px; border-radius:10px; cursor:pointer; font-family:inherit;
+    font:600 12.5px/1 inherit; color:var(--text-2,#5f6b64);
+    background:var(--paper-2,#f4f6f4); border:1.5px solid var(--line,#e0e4e1)}
+  .payopt.on{background:var(--accept,#0c7a46); border-color:var(--accept,#0c7a46); color:#fff}
+
+  .acctop{padding:20px 18px 14px;border-bottom:1px solid var(--line,#eceae4)}
+  .acc-name{margin:0;font:600 19px/1.2 inherit}
+  .acc-sub{margin:5px 0 0;font-size:13px;color:var(--text-3,#8b8880);line-height:1.5}
+  .acchead{margin:18px 18px 4px;font-size:11.5px;letter-spacing:.1em;
+           text-transform:uppercase;color:var(--text-3,#8b8880)}
+  .shiprow{display:flex;align-items:center;gap:12px;padding:13px 18px;
+           border-bottom:1px solid var(--line,#eceae4)}
+  .shiprow .sr-tx{flex:1;min-width:0}
+  .shiprow .sr-tx b{display:block;font:600 14px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace}
+  .shiprow .sr-tx small{display:block;font-size:12px;color:var(--text-3,#8b8880);margin-top:2px}
+  .sr-st{flex:0 0 auto;padding:3px 9px;border-radius:99px;font:600 11px/1.5 inherit}
+  .sr-st.sent{background:var(--unsure-bg,#fdf3e3);color:var(--unsure,#a06510)}
+  .sr-st.paid{background:var(--accept-bg,#e8f5ee);color:var(--accept,#0c7a46)}
+  .accempty{padding:28px 24px;text-align:center;color:var(--text-3,#8b8880);font-size:13.5px}
+
+  .payrow{display:block;padding:12px 0;border-bottom:1px solid var(--line,#eceae4)}
+  .payrow span{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+               color:var(--text-3,#8b8880)}
+  .payrow b{display:block;margin:3px 0 1px;font:700 23px/1 inherit;color:var(--accept,#0c7a46)}
+  .payrow small{display:block;font-size:12px;color:var(--text-3,#8b8880)}
+  .tierchip{display:inline-block;margin-left:7px;padding:1px 7px;border-radius:99px;
+            font:600 10px/1.7 inherit;letter-spacing:.04em;
+            background:var(--paper-2,#f4f6f4);color:var(--text-2,#5f6b64)}
+  .tierchip.premium{background:#f3ecdc;color:#8a6a15}
+
+  /* ---- owner demo --------------------------------------------------------
+     Visually separate from the seller app on purpose: a warning bar at the top
+     of every screen, so nobody ever wonders which side they are looking at. */
+  .ownwarn{display:flex;gap:9px;align-items:flex-start;margin:0;padding:11px 18px;
+    background:var(--unsure-bg,#fdf3e3);color:var(--unsure,#a06510);
+    font:500 11.5px/1.45 'Figtree',sans-serif;border-bottom:1px solid var(--line)}
+  .ownwarn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;flex:0 0 auto;margin-top:1px}
+  .ownrow{padding:12px 18px;border-bottom:1px solid var(--line)}
+  .or-top{display:flex;align-items:center;gap:10px}
+  .or-top b{flex:1;min-width:0;font:600 14.5px/1.3 'Figtree',sans-serif}
+  .or-seg{display:flex;gap:5px;flex:0 0 auto}
+  .or-seg button, .it-seg button{border:1px solid var(--line);background:var(--paper);
+    color:var(--text-2);font:500 11.5px/1 'Figtree',sans-serif;font-family:inherit;
+    padding:6px 11px;border-radius:99px;cursor:pointer}
+  .or-seg button[aria-pressed="true"], .it-seg button[aria-pressed="true"]{
+    background:var(--ink);border-color:var(--ink);color:#fff}
+  :root[data-theme="dark"] .or-seg button[aria-pressed="true"],
+  :root[data-theme="dark"] .it-seg button[aria-pressed="true"]{background:var(--text);color:var(--stage)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .or-seg button[aria-pressed="true"],
+    :root:not([data-theme="light"]) .it-seg button[aria-pressed="true"]{background:var(--text);color:var(--stage)}
+  }
+  .or-pay{display:flex;align-items:center;gap:6px;margin-top:9px;
+    font:400 12px/1 'Figtree',sans-serif;color:var(--text-3)}
+  .or-pay input, .it-price input{width:62px;padding:6px 8px;border-radius:8px;
+    border:1px solid var(--line);background:var(--paper);color:var(--text);
+    font:500 13px/1 'Figtree',sans-serif;font-family:inherit}
+  .sumline{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    padding:7px 0;font:400 13.5px/1.4 'Figtree',sans-serif;color:var(--text-2)}
+  .sumline b{color:var(--text)}
+  .sumline.todo{color:var(--unsure)}
+  .sumline.todo b{color:var(--unsure)}
+  .sum-money{font-size:19px}
+  .itrow{padding:12px 18px;border-bottom:1px solid var(--line)}
+  .it-top{display:flex;align-items:center;gap:10px}
+  .it-top b{flex:1;min-width:0;font:600 14px/1.3 'Figtree',sans-serif}
+  .it-meta{font-size:11px;color:var(--text-3);margin-top:3px}
+  .it-price{display:flex;align-items:center;gap:6px;margin-top:9px;
+    font:400 12px/1 'Figtree',sans-serif;color:var(--text-3)}
+  .it-seg{display:flex;gap:5px;flex:0 0 auto}
+  .sr-st.recv{background:var(--accept-bg,#e8f5ee);color:var(--accept,#0c7a46)}
+  .sr-st.assd{background:var(--paper-2);color:var(--text-2)}
+
+  /* ---- just the app ------------------------------------------------------
+     Default view. Everything that framed the phone for a reader - masthead,
+     the note, the chip strip, the sidenotes, the bezel and the fake status
+     bar - is still in the page but out of the way. ?notes brings it back.
+
+     Hidden rather than deleted so every element the script reaches for still
+     exists; otherwise a dozen call sites would need null guards to display
+     nothing differently. */
+  html:not(.notes) .masthead,
+  html:not(.notes) .note,
+  html:not(.notes) .jump,
+  html:not(.notes) .sidenotes,
+  html:not(.notes) .statusbar{display:none}
+
+  html:not(.notes) body{background:var(--paper)}
+  /* inset:0 alone. It pins all four edges and the browser sizes the box to the
+     fixed-position containing block correctly, iOS included. An explicit
+     height here overrides the bottom:0 edge - and since visualViewport
+     measures the VISUAL viewport while a fixed element lays out against the
+     LAYOUT one, the two disagreeing pushed the tab bar off the screen.
+
+     --apph stays as a MAX-height, which can only shrink the app, never
+     overflow it: that is what keeps the signup fields above the keyboard. */
+  html:not(.notes) .wrap{max-width:none; margin:0; padding:0;
+    position:fixed; inset:0; max-height:var(--apph, none)}
+  html:not(.notes) .stagerow{display:block; height:100%; gap:0}
+  html:not(.notes) .phone{width:100%; max-width:none; height:100%;
+    background:none; border-radius:0; padding:0; box-shadow:none; position:static}
+  html:not(.notes) .screenbox{border-radius:0; height:100%}
+
+  /* Everything stacks from the top and the leftover sits at the bottom. The
+     hero's gradient ends where the hero ends, but the menu starts there, so
+     the edge is behind the buttons rather than out in the open - and what is
+     left below the menu is flat ink, which is what .home already is. */
+  html:not(.notes) .hero{flex:0 0 auto}
+  html:not(.notes) .menu{flex:0 0 auto}
+
+  /* The lockup grows with the screen. Lower bound is what a 667px phone shows
+     today, upper bound stops a tall desktop column from ballooning. */
+  html:not(.notes) .mark{width:clamp(84px, 13vh, 116px); height:clamp(84px, 13vh, 116px)}
+  html:not(.notes) .wordmark{font-size:clamp(18px, 2.35vh, 21px)}
+  html:not(.notes) .headline{font-size:clamp(27px, 4.3vh, 35px)}
+  html:not(.notes) .lede{font-size:clamp(13px, 1.65vh, 14.5px)}
+
+  /* On a wide screen a full-bleed phone UI looks stretched, so it sits in a
+     column the width of a large handset - what a mobile-first web app does. */
+  @media (min-width:620px){
+    html:not(.notes) body{background:var(--stage)}
+    html:not(.notes) .wrap{padding:22px 16px}
+    /* Capped, because a phone UI stretched down a 1300px window puts the
+       logo in the middle of nothing. Behaves like a tall handset instead. */
+    html:not(.notes) .phone{max-width:460px; max-height:920px; margin:auto;
+      height:100%; box-shadow:var(--shadow); border-radius:20px}
+    html:not(.notes) .stagerow{display:flex; align-items:center;
+      justify-content:center; height:100%}
+    html:not(.notes) .screenbox{border-radius:20px}
+  }
+</style>
+<script>
+  // Before any markup, so the layout is settled before the first paint and
+  // the annotated version never flashes up on the way to the plain one.
+  if(/[?&]notes\b/.test(location.search)) document.documentElement.classList.add('notes');
+</script>
+
+<div class="wrap">
+  <div class="masthead">
+    <div>
+      <h1>KollectionCloset <span>— working prototype</span></h1>
+      <p>His eight screens, plus the seven the flow turned out to need — the last three
+         are the send-it-in path: build a box, earn a free label, get a shipment number.
+         The brand list, the search and the matching engine are real,
+         and your edits persist. Tap a chip to jump to any state.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>What isn't real:</b> label OCR. A hosted page can't run it — and testing with a web
+    OCR engine would understate what Apple Vision does on the same photo, so it'd be a
+    misleading result. The camera captures a genuine photo; the text it "reads" comes from a
+    sample tag or from typing. <b>Everything downstream of that text is the real algorithm.</b>
+    The shipping QR is a stand-in too — a live one is issued by the carrier against his
+    account. The shipment number beside it is real, and really is unique.
+  </div>
+
+  <nav class="jump" id="jump" aria-label="Jump to screen"></nav>
+
+  <div class="stagerow">
+    <div class="phone">
+      <div class="screenbox">
+        <div class="statusbar" id="statusbar">
+          <span>9:41</span>
+          <span class="dots">▮▮▮ ◗ ▰</span>
+        </div>
+
+        <!-- 1 · HOME -->
+        <section class="screen on" id="s-home">
+          <div class="body">
+            <div class="home intro">
+              <div class="hero">
+                <div class="mark" aria-hidden="true">
+                  <svg viewBox="0 0 64 64">
+                    <path class="hk-hook" pathLength="1" d="M32 26V21a5.5 5.5 0 1 0-5.5-5.5"/>
+                    <path class="hk-body" pathLength="1" d="M32 26 8.5 45.5h47L32 26Z"/>
+                  </svg>
+                </div>
+                <p class="wordmark">Kollection<em>Closet</em></p>
+                <span class="rule"></span>
+                <h2 class="headline">Your closet is<br>worth something.</h2>
+                <p class="lede">Check a brand in seconds. Build a box.
+                   We&rsquo;ll tell you what we&rsquo;ll take before you send it.</p>
+                <p class="herostat"><b id="home-count">0</b> brands on the buy list</p>
+              </div>
+
+              <div class="menu">
+                <button class="boxcard" data-go="box" id="home-box" hidden>
+                  <span class="bc-ic"><svg viewBox="0 0 24 24"><path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5z"/><path d="M3 8.5 12 13l9-4.5M12 13v7"/></svg></span>
+                  <span class="bc-tx"><b>Your box &middot; <span id="home-box-n"></span></b>
+                    <small id="home-box-sub">Ready to send</small></span>
+                  <span class="bc-go">&rsaquo;</span>
+                </button>
+
+                <button class="cta" data-go="camera">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="1.8"><path d="M3 8a2 2 0 0 1 2-2h2l1.2-2h7.6L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.6"/></svg>
+                  Scan a label
+                </button>
+
+                <div class="tiles">
+                  <button class="tile" data-go="browse">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <b>Browse brands</b><small>The whole list</small>
+                  </button>
+                  <button class="tile" data-go="manual">
+                    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg>
+                    <b>Type it in</b><small>No tag, or faded</small>
+                  </button>
+                </div>
+
+                <button class="acctrow" data-go="account" id="home-account" hidden>
+                  <span class="ar-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></span>
+                  <span class="ar-tx"><b>Your account</b><small>&mdash;</small></span>
+                  <span class="ar-go">&rsaquo;</span>
+                </button>
+
+                <div class="quiet">
+                  <button data-go="damage">What we take</button>
+                  <span>&middot;</span>
+                  <button data-go="how">How it works</button>
+                  <span>&middot;</span>
+                  <button data-go="about">Settings</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · CAMERA -->
+        <section class="screen" id="s-camera">
+          <div class="navbar" style="background:#000;color:#fff">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">Scan Label</span><span class="spacer"></span>
+          </div>
+          <div class="cam">
+            <div class="camview" id="camview">
+              <video id="video" playsinline muted autoplay></video>
+              <div class="reticle"><span></span><span></span><span></span><span></span></div>
+              <p class="camhint" id="camhint">Fill the frame with the brand tag</p>
+            </div>
+            <div class="camctl">
+              <button class="side" id="btn-gallery">
+                <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>
+                Gallery
+              </button>
+              <button class="shutter" id="shutter" aria-label="Take photo"></button>
+              <button class="side" data-go="manual">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg>
+                No tag
+              </button>
+            </div>
+          </div>
+          <input type="file" id="file" accept="image/*" hidden>
+
+          <div class="sheet" id="sheet">
+            <div class="sheetcard">
+              <h4>What does the tag say?</h4>
+              <p>This is where the OCR result would land. Type it, or pick a sample —
+                 including deliberately messy ones, to see how the matcher copes.</p>
+              <label class="f" for="ocrtext">What the label says</label>
+              <textarea id="ocrtext" placeholder="e.g. lululemon&#10;6&#10;Made in Vietnam"></textarea>
+              <div class="samples" id="samples"></div>
+              <button class="btn primary" id="runmatch">Run the matcher</button>
+              <button class="btn ghost" id="closesheet" style="margin-top:8px">Cancel</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 · SCANNING -->
+        <section class="screen" id="s-scanning">
+          <div class="navbar"><span class="spacer"></span><span class="ttl">Scanning…</span><span class="spacer"></span></div>
+          <div class="body">
+            <div class="scanning">
+              <div class="pulse"><svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M7.5 12h9"/></svg></div>
+              <h3>Reading the label…</h3>
+              <div class="steps" id="steps">
+                <div><span class="tick"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></span>Detecting text</div>
+                <div><span class="tick"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></span>Identifying brand</div>
+                <div><span class="tick"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></span>Checking our list</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4/5 · RESULT -->
+        <section class="screen" id="s-result">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">KollectionCloset</span><span class="spacer"></span>
+          </div>
+          <div class="body" id="resultbody"></div>
+        </section>
+
+
+        <!-- BOX · what you're going to send -->
+        <section class="screen" id="s-box">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Your box</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="boxmeter">
+              <p id="box-status">Nothing in the box yet.</p>
+            </div>
+            <div id="box-list"></div>
+            <div class="callout info" id="box-donate-note" hidden>
+              <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A3.8 3.8 0 0 1 12 8.4a3.8 3.8 0 0 1 7 2.4C19 15.6 12 20 12 20Z"/></svg>
+              <span><b>If you donate it, we don&rsquo;t sell it.</b> It goes to a local charity
+                and we tell you which one. If something you marked donate turns out to be
+                worth buying, we&rsquo;ll ask you and pay for it &mdash; we won&rsquo;t quietly keep it.</span>
+            </div>
+
+            <div class="btnstack" id="box-actions"></div>
+          </div>
+        </section>
+
+
+        <!-- JOIN · the profile every seller needs -->
+        <section class="screen" id="s-join">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Your account</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="shipwrap">
+              <h3 id="join-title">Create your account</h3>
+              <p class="shipsub" id="join-sub">So we can send your label, keep track of your
+                 boxes, and pay you. It takes one screen and there is no password &mdash; we
+                 email you a link when you want to sign in.</p>
+
+              <label class="fieldlab" for="join-name">Name</label>
+              <input class="field" id="join-name" type="text" autocomplete="name"
+                     placeholder="Sam Winson">
+              <p class="fieldnote" id="join-name-err" hidden>We need a name for the box.</p>
+
+              <label class="fieldlab" for="join-email" style="margin-top:16px">Email</label>
+              <input class="field" id="join-email" type="email" inputmode="email"
+                     autocomplete="email" placeholder="you@example.com">
+              <p class="fieldnote" id="join-email-err" hidden>That doesn&rsquo;t look like an email.</p>
+
+              <label class="fieldlab" style="margin-top:20px">How would you like to be paid?</label>
+              <div class="payseg" id="join-seg">
+                <button type="button" class="payopt on" data-jpay="Zelle">Zelle</button>
+                <button type="button" class="payopt" data-jpay="Cash App">Cash App</button>
+                <button type="button" class="payopt" data-jpay="PayPal">PayPal</button>
+              </div>
+              <input class="field" id="join-handle" type="text" autocomplete="off"
+                     placeholder="Phone or email for Zelle">
+              <p class="fieldnote" id="join-handle-err" hidden>We need somewhere to send the money.</p>
+
+              <p class="shipfine" style="margin:18px 0 4px">Anything we can&rsquo;t take comes
+                 back to you free. You can choose to donate individual pieces instead when
+                 you pack your box &mdash; it is a decision per item, not one setting for
+                 everything you ever send.</p>
+
+              <button class="btn primary" id="join-go">Create account</button>
+              <p class="shipfine">We never ask for a password or a card number. You can change
+                 any of this later.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACCOUNT · who you are and what you have sent -->
+        <section class="screen" id="s-account">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Your account</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="acctop">
+              <p class="acc-name" id="acc-name">&mdash;</p>
+              <p class="acc-sub" id="acc-sub">&mdash;</p>
+            </div>
+            <h4 class="acchead">Your shipments</h4>
+            <div id="acc-ships"></div>
+            <div class="btnstack">
+              <button class="btn ghost" data-go="join" id="acc-edit">Edit your details</button>
+              <button class="btn ghost" id="acc-out">Sign out</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SHIP · email, then the label -->
+        <section class="screen" id="s-ship">
+          <div class="navbar">
+            <button class="back" data-go="box" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Get your label</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="shipwrap">
+              <h3>Ready to send</h3>
+              <p class="shipsub">We’ll email your QR code. Show it at the counter &mdash;
+                 no printer needed, and the postage is on us.</p>
+              <div class="payseg" style="grid-template-columns:1fr 1fr;margin-bottom:14px" id="how-seg">
+                <button type="button" class="payopt on" data-how="ship">Ship it</button>
+                <button type="button" class="payopt" data-how="drop">Drop it off</button>
+              </div>
+              <div class="labelfacts" id="ship-confirm" style="border-top:0;padding-top:0"></div>
+              <button class="btn primary" id="ship-go">Email me the QR code</button>
+              <button class="btn ghost" data-go="account">Change my details</button>
+              <p class="shipfine">We never ask for a password or a card number.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- LABEL · the reference number and the code -->
+        <section class="screen" id="s-label">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Shipment</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="labelwrap">
+              <p class="labeleyebrow">Your shipment number</p>
+              <p class="refno" id="label-ref">KC-000000</p>
+              <div class="qrbox"><canvas id="label-qr" width="180" height="180"></canvas></div>
+              <p class="qrfine">Sample code &mdash; the live one comes from the carrier.</p>
+              <div class="labelfacts" id="label-facts"></div>
+              <div class="btnstack">
+                <button class="btn primary" data-go="home">Done</button>
+                <button class="btn ghost" id="label-new">Start another box</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- DAMAGE GUIDE -->
+        <section class="screen" id="s-damage">
+          <div class="navbar">
+            <button class="back" data-go="box" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">What we can take</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="dmgwrap">
+              <p class="dmglede">The brand list says <i>whether</i> we buy it. This says
+                 what condition it has to be in. Worth two minutes before you pack &mdash;
+                 anything that fails here gets sent back or recycled, and that helps
+                 nobody.</p>
+
+              <h3 class="dmghead never">Leave these out</h3>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Stains</b><small>Any mark at all, including faint yellowing at the underarm. A stain that survived one wash will survive ours.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Holes, tears and snags</b><small>Including moth holes you can only see against the light, and pulled threads on knitwear.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Broken or missing hardware</b><small>Missing buttons, a zip that sticks or splits, a snapped drawstring, a broken clasp.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Smoke or mildew</b><small>It does not wash out and it transfers to everything around it in the box.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Heavy pilling</b><small>Bobbling across a whole panel &mdash; typically the seat, the underarms or the inner thigh.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Counterfeits</b><small>If you are not certain it is genuine, leave it out.</small></div>
+                <span class="dmg-v no">No</span>
+              </div>
+
+              <h3 class="dmghead fine">These are fine</h3>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Creasing from packing</b><small>Comes out on a hanger.</small></div>
+                <span class="dmg-v yes">Fine</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>A loose thread</b><small>If you can trim it, trim it.</small></div>
+                <span class="dmg-v yes">Fine</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>A cut-out care label</b><small>Cut for comfort is fine. The brand tag itself needs to be there.</small></div>
+                <span class="dmg-v yes">Fine</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Light sole wear on shoes</b><small>Tread still clearly defined, no heel collapse.</small></div>
+                <span class="dmg-v yes">Fine</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Washed but unworn</b><small>Ideal, actually.</small></div>
+                <span class="dmg-v yes">Fine</span>
+              </div>
+
+              <h3 class="dmghead depends">Judgement call</h3>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Light pilling</b><small>A few bobbles under the arms. On a premium coat, fine. On a basics tee, not worth the postage.</small></div>
+                <span class="dmg-v maybe">Depends</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Slight fading</b><small>Black cotton going grey is common and forgiven on workwear, not on eveningwear.</small></div>
+                <span class="dmg-v maybe">Depends</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>Altered or hemmed</b><small>Trousers taken up are fine if the hem is clean and even. A home job with visible stitching is not.</small></div>
+                <span class="dmg-v maybe">Depends</span>
+              </div>
+              <div class="dmg">
+                <div class="dmg-tx"><b>A mark that might wash out</b><small>If you are not sure, wash it first and look again. Do not gamble a slot on it.</small></div>
+                <span class="dmg-v maybe">Depends</span>
+              </div>
+
+              <div class="dmgcheck">
+                <h4>How to check in ten seconds</h4>
+                <ul>
+                  <li>Hold it up to a window &mdash; thin patches and moth holes show.</li>
+                  <li>Turn the underarms and collar out. That is where things die first.</li>
+                  <li>Run a hand over the seat and inner thigh for bobbling.</li>
+                  <li>Smell it. If you have to think about it, it smells.</li>
+                  <li>Work every zip and button once.</li>
+                </ul>
+              </div>
+
+              <div class="btnstack">
+                <button class="btn primary" data-go="box">Back to my box</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6 · NOT SURE -->
+        <section class="screen" id="s-unsure">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">KollectionCloset</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="unsure">
+              <div class="mk"><svg viewBox="0 0 24 24"><path d="M12 8.5v5M12 16.8v.2"/><path d="M10.3 3.9 2.6 17.1A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+              <h3>Not sure</h3>
+              <p id="unsure-why">We couldn't read a brand we recognise from that photo.</p>
+              <img class="shot" id="unsure-shot" alt="The photo you took" hidden>
+              <div id="unsure-near"></div>
+              <div class="btnstack" style="width:100%;padding-left:0;padding-right:0">
+                <button class="btn primary" data-go="camera">Try Again</button>
+                <button class="btn ghost" data-go="manual">Type the brand instead</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- NO TAG · MANUAL ENTRY -->
+        <section class="screen" id="s-manual">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">No Tag</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="fieldset" style="padding-top:8px">
+              <p style="margin:0 0 4px;font-size:13.5px;color:var(--text-2);line-height:1.5">
+                Tag cut out, worn away, or stamped into the leather? Tell us what it is.</p>
+
+              <div class="typeahead">
+                <label class="f" for="m-brand">Brand</label>
+                <input id="m-brand" type="text" placeholder="Start typing…" autocomplete="off">
+                <div class="suggest" id="m-suggest" hidden></div>
+              </div>
+
+              <div>
+                <label class="f" for="m-types">What is it?</label>
+                <div class="typechips" id="m-types"></div>
+              </div>
+
+              <button class="btn primary" id="m-check">Check this item</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7 · BROWSE -->
+        <section class="screen" id="s-browse">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">Brands</span><span class="spacer"></span>
+          </div>
+          <div class="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <label class="f" for="q" style="position:absolute;left:-9999px">Search brands</label>
+            <input id="q" type="search" placeholder="Search brands…" autocomplete="off">
+          </div>
+          <div class="chips" id="chips"></div>
+          <div class="body"><ul class="blist" id="blist"></ul></div>
+        </section>
+
+        <!-- 7b · BRAND DETAIL -->
+        <section class="screen" id="s-detail">
+          <div class="navbar">
+            <button class="back" data-go="browse" aria-label="Back">‹</button>
+            <span class="ttl">Brand Details</span><span class="spacer"></span>
+          </div>
+          <div class="body" id="detailbody"></div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="screen" id="s-how">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">How It Works</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="pad" style="padding-top:8px">
+              <ol style="padding-left:18px; font-size:14.5px; line-height:1.7; color:var(--text-2)">
+                <li style="margin-bottom:16px"><b style="color:var(--text)">Check your brands.</b>
+                  Photograph the tag at the collar or waistband, or type the name. We tell you
+                  straight away whether we buy that brand and what we pay for it &mdash; before
+                  you pack a thing.</li>
+                <li style="margin-bottom:16px"><b style="color:var(--text)">Get a free label.</b>
+                  Build a box, then tell us where to send the money: name, email, and Zelle,
+                  Cash App or PayPal. No password. We email you a shipping label &mdash; post it
+                  or drop it off, postage is on us, and there is no minimum.</li>
+                <li><b style="color:var(--text)">We check it and pay you.</b>
+                  Once your box lands we go through it piece by piece and send what we owe you.
+                  Anything we can’t take comes back free, or goes to a local charity
+                  &mdash; you choose that per item when you pack the box.</li>
+              </ol>
+              <div class="btnstack" style="padding:0;margin:18px 0 4px">
+                <button class="btn ghost" id="see-mail">See the email you&rsquo;ll get</button>
+              </div>
+              <div class="callout amber" style="margin-left:0;margin-right:0">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8.2v4.4M12 15.8v.2"/></svg>
+                <span><b>Being on the list isn't a guarantee.</b>
+                  Condition, season and how much of it we already hold all matter. The list
+                  tells you whether the brand is worth bringing in.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS (customer-facing) -->
+        <section class="screen" id="s-about">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">‹</button>
+            <span class="ttl">Settings</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="about">
+              <div class="setsec" style="padding-left:0;padding-right:0">
+                <h4>Your privacy</h4>
+                <p style="margin:0 0 9px">Photos are read on your phone and never leave it,
+                   and we keep no record of what you look up. Checking a brand is anonymous
+                   whether you have an account or not.</p>
+                <p style="margin:0">An account is only needed to <b>send</b> a box, because the
+                   label, the parcel and the payment all have to hang off one record. It asks
+                   for your name, an email and where to send your money &mdash; nothing else. We
+                   don’t pass them on, and we never ask for a password or a card number.</p>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0">
+                <h4>Your box</h4>
+                <p style="margin:0">The box you are building is kept on this phone until you
+                   ask for a label. Clear your browser data and it goes with it.</p>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0">
+                <h4>Getting paid</h4>
+                <p style="margin:0 0 9px">You see the price before you send &mdash; it is on
+                   the brand, not haggled afterwards. Once your box lands we confirm each item
+                   against what you told us, and pay by <b>Zelle, Cash App or PayPal</b>,
+                   whichever you picked when you got your label.</p>
+                <p style="margin:0">Anything we can’t take either comes back to you at no
+                   cost, or goes to a local charity on your behalf &mdash; whichever you
+                   picked for that piece when you packed the box. It is per item, so a coat
+                   can come home while a worn-out tee goes to the charity shop.</p>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0">
+                <h4>What donating means</h4>
+                <p style="margin:0 0 9px">You choose per item, so you can have a coat posted
+                   back and let a worn-out tee go. Whatever you mark <b>donate</b> goes to a
+                   local charity, and the name and date come to you with your payment.</p>
+                <p style="margin:0"><b>We don&rsquo;t sell it and we don&rsquo;t keep it as stock.</b>
+                   If something you marked donate turns out to be worth buying, we ask you
+                   first and pay you for it. Passing on an item to keep it would be a good way
+                   to lose a seller for good, and we&rsquo;d rather just make you an offer.</p>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0">
+                <h4 class="todo">Still to confirm</h4>
+                <p style="margin:0"><b>The warehouse address</b> &mdash; coming soon. It will be
+                   on your label, so you won’t need to write it down.</p>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0;border-bottom:0">
+                <h4>The brand list</h4>
+                <p style="margin:0 0 11px">What we buy shifts with what sells. Worth checking
+                   again before a big drop-off — a brand that was a no last month might not be.</p>
+                <button class="btn ghost" data-go="how">How it works</button>
+              </div>
+              <div class="setsec" style="padding-left:0;padding-right:0;border-bottom:0">
+                <h4 class="todo">For the demo</h4>
+                <p style="margin:0 0 11px">The owner's side, so you can see both halves without
+                   a second account. It would not sit here in the real app &mdash; it would be a
+                   separate sign-in that customers never see.</p>
+                <button class="btn ghost" data-go="owner">Open the owner demo</button>
+              </div>
+              <p class="ver" id="ver">KollectionCloset · version 1.0 (preview)</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- OWNER DEMO -->
+        <section class="screen" id="s-owner">
+          <div class="navbar">
+            <button class="back" data-go="about" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Owner Demo</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="ownwarn"><svg viewBox="0 0 24 24"><path d="M12 9v4.6M12 17v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span><b>Demo only.</b> No sign-in, no security &mdash; anyone with this link can open it. Changes are saved in this browser and nobody else sees them. The real version is a separate login against the database.</span></div>
+            <div class="menu" style="padding:14px 16px 16px">
+              <button class="acctrow" data-go="ownbrands">
+                <span class="ar-ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+                <span class="ar-tx"><b>The buy list</b><small id="own-sum">&mdash;</small></span>
+                <span class="ar-go">&rsaquo;</span>
+              </button>
+              <button class="acctrow" data-go="ownintake">
+                <span class="ar-ic"><svg viewBox="0 0 24 24"><path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5z"/><path d="M3 8.5 12 13l9-4.5M12 13v7"/></svg></span>
+                <span class="ar-tx"><b>Boxes coming in</b><small id="own-insum">&mdash;</small></span>
+                <span class="ar-go">&rsaquo;</span>
+              </button>
+            </div>
+            <div class="pad">
+              <button class="btn ghost" id="own-reset">Put the buy list back to its defaults</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="s-ownbrands">
+          <div class="navbar">
+            <button class="back" data-go="owner" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Buy List</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="ownwarn"><svg viewBox="0 0 24 24"><path d="M12 9v4.6M12 17v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span><b>Demo only.</b> No sign-in, no security &mdash; anyone with this link can open it. Changes are saved in this browser and nobody else sees them. The real version is a separate login against the database.</span></div>
+            <div class="pad" style="padding-bottom:4px">
+              <div class="search"><input id="own-q" placeholder="Find a brand..." autocomplete="off"></div>
+            </div>
+            <div id="own-list"></div>
+          </div>
+        </section>
+
+        <section class="screen" id="s-ownintake">
+          <div class="navbar">
+            <button class="back" id="own-in-back" data-go="owner" aria-label="Back">&lsaquo;</button>
+            <span class="ttl" id="own-in-ttl">Boxes Coming In</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="ownwarn"><svg viewBox="0 0 24 24"><path d="M12 9v4.6M12 17v.2"/><path d="M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span><b>Demo only.</b> No sign-in, no security &mdash; anyone with this link can open it. Changes are saved in this browser and nobody else sees them. The real version is a separate login against the database.</span></div>
+            <div id="own-in"></div>
+          </div>
+        </section>
+
+        <section class="screen" id="s-ownmail">
+          <div class="navbar">
+            <button class="back" data-go="ownintake" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Their Email</span><span class="spacer"></span>
+          </div>
+          <div class="body" style="background:#f4f6f4">
+            <iframe id="mailview" title="Email preview"
+              style="width:100%;height:100%;border:0;display:block;background:#f4f6f4"></iframe>
+          </div>
+        </section>
+
+        <!-- TAB BAR -->
+        <nav class="tabbar" id="tabbar">
+          <button data-go="home" data-tab="home">
+            <svg viewBox="0 0 24 24"><path d="m3 10.5 9-7 9 7V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+          <button data-go="camera" data-tab="camera">
+            <svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.2-2h7.6L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.6"/></svg>Scan</button>
+          <button data-go="browse" data-tab="browse">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Brands</button>
+          <button data-go="account" data-tab="account">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>Account</button>
+        </nav>
+      </div>
+    </div>
+
+    <aside class="sidenotes">
+      <div class="card">
+        <h2>The list</h2>
+        <div class="statline">
+          <div><b id="stat-total">0</b> brands</div>
+          <div><b id="stat-yes">0</b> accepted</div>
+          <div><b id="stat-no">0</b> rejected</div>
+        </div>
+        <p style="margin-top:12px">Placeholder data — a plausible buy list for a
+           mid-market reseller, and the prices are guesses too. Both come from the source
+           rather than this browser, so his real list replaces them in one place.</p>
+      </div>
+
+      <div class="card">
+        <h2>How the matcher works</h2>
+        <p>This is the part that ports straight to Swift or Kotlin unchanged, and the part
+           worth getting right.</p>
+        <ul>
+          <li>Text is normalised — lowercased, punctuation stripped.</li>
+          <li>Every brand carries <b>aliases</b>: each way the name is actually printed on a tag.</li>
+          <li>A second pass collapses the characters OCR habitually confuses —
+              <code>0/o</code>, <code>1/l/i</code>, <code>5/s</code>, <code>rn/m</code> —
+              so <code>1u1u1emon</code> still matches.</li>
+          <li>Then edit distance on individual words, for the rest.</li>
+          <li>Strong hit answers outright. A weak one becomes <b>Not sure</b> with suggestions,
+              never a confident wrong answer.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Typing, with typos</h2>
+        <p>Search is a separate pass — a few characters someone is still typing, not a blob
+           of OCR text. It tolerates the mistakes people actually make:</p>
+        <ul>
+          <li><b>Swapped letters.</b> <code>raplh lauren</code>, <code>vuroi</code>,
+              <code>shien</code> — the most common typing error there is, and the reason this
+              uses Damerau rather than plain edit distance.</li>
+          <li><b>Wrong or missing letters.</b> <code>adiddas</code>, <code>nrth face</code>,
+              <code>carhart</code>, <code>colombia</code>.</li>
+          <li><b>Initials.</b> <code>tnf</code> finds The North Face.</li>
+          <li><b>The other country's spelling.</b> <code>under armor</code> finds Under Armour.</li>
+        </ul>
+        <p style="margin-top:9px">A clean prefix always outranks a fuzzy hit, so four letters
+           into <code>lulu</code> you get lululemon — never a near-miss on something else.
+           When a match came through an alias, the row says which one, so it isn't a mystery.</p>
+      </div>
+
+      <div class="card">
+        <h2>Where the admin went</h2>
+        <p>There was an on-device admin panel here &mdash; a passcode, a hidden gesture, an
+           Admin tab &mdash; and it has been taken out entirely. The brand list is now a
+           constant in the source, and the app never writes to it.</p>
+        <p><b>Because the honest version needs a server anyway.</b> A passcode that ships
+           inside the app is visible in view-source and readable in a binary&rsquo;s strings; it
+           <em>hides</em> a panel, it does not secure one. That was tolerable while the list
+           lived on one phone and the worst case was somebody editing their own copy. It stops
+           being tolerable the moment the same screens reach other people&rsquo;s email
+           addresses, payout handles and money owed.</p>
+        <p>So his half is a <b>separate sign-in against a real database</b>, on its own
+           address, with none of its code in the app customers download. Same data, two front
+           doors. The schema and the endpoints for it are in <code>BACKEND.md</code>.</p>
+      </div>
+
+      <div class="card">
+        <h2>What the server holds</h2>
+        <p>Profiles, shipments and the buy list all move to a database &mdash; that is what
+           the <b>Account</b> tab is for, and it is the reason a label can exist at all: a
+           carrier key cannot live in a browser, so something has to sit between the app and
+           Shippo.</p>
+        <p>The box itself deliberately <em>stays</em> on the phone. A half-packed box is a
+           draft, not a record, and syncing one would mean writing to a server on every tap
+           for something nobody else will ever read.</p>
+        <p>Four tables and six endpoints, in <code>supabase/schema.sql</code> and
+           <code>netlify/functions</code>. The app runs without any of it today.</p>
+      </div>
+
+      <div class="card">
+        <h2>Accounts, and what they are for</h2>
+        <p>An account is required before a box can be sent, and it earns that: the label, the
+           shipment and the payout all have to hang off one record. Without it every parcel is
+           anonymous and the only way to answer &ldquo;where is my money&rdquo; is to search an
+           inbox.</p>
+        <p><b>No password anywhere.</b> Sign-in is a link by email. A password is a thing that
+           can leak, and somebody selling a coat twice a year will not remember one &mdash; so
+           the app asks for an email, a name and where to send money, and nothing else. It
+           never asks for a card number, and it should not start.</p>
+        <p>Scanning still forgets. Nothing records what anybody looked up, whether they have
+           an account or not.</p>
+      </div>
+
+      <div class="card">
+        <h2>Logo matching, realistically</h2>
+        <p>Reading text and recognising a swoosh are different technologies. Text recognition
+           is a free, instant, on-device API. Logo recognition is one of four things, and they
+           are not equivalent:</p>
+        <ul>
+          <li><b>Cloud vision API</b> — ~$1.50 per 1,000 scans, needs a network, and its brand
+              coverage skews to global giants. It knows Nike. It won't know Vuori or Alo, which
+              are where the margin is.</li>
+          <li><b>Multimodal LLM</b> — accurate and flexible, but a few cents a scan and a
+              second or two of latency. Constrain it to pick from the brand list or say
+              nothing, or it will confidently invent a brand.</li>
+          <li><b>A trained model</b> — free per scan, offline, and needs 50–200 photos
+              <em>per brand</em>. That's the wall most of these projects hit.</li>
+          <li><b>Image feature-print match</b> — the one I'd build. iOS has
+              <code>VNGenerateImageFeaturePrintRequest</code>: it fingerprints an image and
+              measures distance between fingerprints, on-device and free. Needs three to five
+              reference photos per brand, not hundreds. A new brand means uploading photos,
+              not retraining.</li>
+        </ul>
+        <p style="margin-top:9px">All four need reference photos he doesn't have, and with
+           nothing leaving the phone the app can't gather them for him. So they get added by
+           hand, three to five shots of each brand's real tags, from whoever maintains the
+           list. Collecting those is the long pole on any of the four, which is worth knowing
+           before picking one.</p>
+      </div>
+
+      <div class="card">
+        <h2>What I'd check next</h2>
+        <p><b>Tags with no text.</b> A woven logo and a size, nothing to read. That's image
+           classification, a different and much harder problem — and it's why the Not Sure
+           path needs to be good rather than an apology.</p>
+        <p><b>Whether scanning beats typing.</b> Three letters into the search box already
+           answers the question. The camera has to be faster than that, or it's the demo and
+           search is the product.</p>
+        <p><b>Category comes from the brand record</b>, not the photo — nobody should
+           accidentally build garment recognition.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Seed list. Deliberately opinionated so search and filtering have something to
+// bite on. Nothing in a note ever characterises what an item is worth: the app
+// says what is on the buy list, never why something didn't make it.
+// Every row is placeholder until the real buy list replaces it.
+// ---------------------------------------------------------------------------
+const SEED = [
+  ['lululemon','y','Activewear','Leggings, Jackets, Tops','Align, Wunder Train, Define','lululemon athletica, lulu','All items accepted except heavily piled Align.'],
+  ['Nike','y','Activewear','Shoes, Tops, Shorts','Dri-FIT, Tech Fleece','nike, swoosh',''],
+  ['adidas','y','Activewear','Shoes, Track tops','Originals, Ultraboost','adidas originals, three stripes',''],
+  ['Alo Yoga','y','Activewear','Leggings, Sets','Airbrush, Accolade','alo, alo yoga',''],
+  ['Athleta','y','Activewear','Leggings, Tops','Salutation, Elation','athleta, athleta girl',''],
+  ['Vuori','y','Activewear','Joggers, Tops','Ponto, Kore','vuori clothing',''],
+  ['Under Armour','y','Activewear','Tops, Shorts','HeatGear, ColdGear','under armour, ua',''],
+  ['Gymshark','y','Activewear','Leggings, Sets','Vital, Adapt','gymshark','Check the seams and cuffs before bringing it in.'],
+  ['Patagonia','y','Outerwear','Fleece, Shells','Better Sweater, Retro-X','patagonia, patagonia inc','Take it in any condition — repairs and patches are fine.'],
+  ['The North Face','y','Outerwear','Jackets, Fleece','Nuptse, Denali','the north face, tnf, north face',''],
+  ['Arc’teryx','y','Outerwear','Shells, Mid layers','Beta, Atom','arcteryx, arc teryx, arc’teryx',''],
+  ['Columbia','y','Outerwear','Jackets, Fleece','Bugaboo, Benton Springs','columbia sportswear, columbia',''],
+  ['Carhartt','y','Apparel','Jackets, Pants','Detroit, Chore Coat','carhartt, carhartt wip',''],
+  ['Levi’s','y','Denim','Jeans, Trucker jackets','501, 505, 550','levis, levi strauss, levi’s',''],
+  ['Madewell','y','Denim','Jeans, Tops','The Perfect Vintage','madewell',''],
+  ['Free People','y','Apparel','Dresses, Tops','We The Free','free people, we the free',''],
+  ['Anthropologie','y','Apparel','Dresses, Knitwear','Pilcro, Maeve','anthropologie, anthro',''],
+  ['Reformation','y','Apparel','Dresses','—','reformation, ref',''],
+  ['Aritzia','y','Apparel','Coats, Knitwear','Wilfred, Babaton, TNA','aritzia, wilfred, babaton, tna','Sub-labels count — check the inner tag.'],
+  ['J.Crew','y','Apparel','Knitwear, Blazers','—','j crew, jcrew, j.crew',''],
+  ['Everlane','y','Apparel','Tops, Trousers','—','everlane',''],
+  ['Banana Republic','y','Apparel','Blazers, Knitwear','—','banana republic, br',''],
+  ['American Eagle','y','Denim','Jeans, Tops','—','american eagle, ae, aeo',''],
+  ['Champion','y','Apparel','Hoodies, Sweats','Reverse Weave','champion, champion usa','Reverse Weave, with the stitched-on label.'],
+  ['Dr. Martens','y','Shoes','Boots','1460, 1461','dr martens, doc martens, airwair',''],
+  ['Birkenstock','y','Shoes','Sandals','Arizona, Boston','birkenstock, birkenstocks',''],
+  ['New Balance','y','Shoes','Sneakers','550, 990','new balance, nb',''],
+  ['Hoka','y','Shoes','Sneakers','Clifton, Bondi','hoka, hoka one one',''],
+  ['On Running','y','Shoes','Sneakers','Cloud','on running, on cloud, on',''],
+  ['Ugg','y','Shoes','Boots, Slippers','Classic, Tasman','ugg, ugg australia',''],
+  ['Coach','y','Accessories','Bags, Wallets','Tabby, Willow','coach, coach new york','Bags and small leather goods. Not the clothing line.'],
+  ['Kate Spade','y','Accessories','Bags','—','kate spade, kate spade new york',''],
+  ['Tory Burch','y','Accessories','Bags, Flats','Reva','tory burch',''],
+  ['Lucky Brand','y','Denim','Jeans','—','lucky brand, lucky',''],
+  ['Eddie Bauer','y','Outerwear','Jackets','—','eddie bauer',''],
+  ['Ralph Lauren','y','Apparel','Shirts, Knitwear','Polo, Oxford','polo ralph lauren, lauren ralph lauren, polo by ralph lauren, rlx, chaps ralph lauren, polo sport','Every Polo sub-label counts as Ralph Lauren. Plain Chaps does not.'],
+  ['Tommy Hilfiger','y','Apparel','Shirts, Outerwear','—','tommy hilfiger, tommy jeans, tommy',''],
+
+  ['Zara','n','Apparel','Tops, Dresses','—','zara, zara basic, zara trf','Not on our current buy list.'],
+  ['H&M','n','Apparel','Tops, Dresses','—','h m, h&m, hennes mauritz','Not on our current buy list.'],
+  ['Shein','n','Apparel','Tops, Dresses','—','shein, sheln','Not on our current buy list.'],
+  ['Forever 21','n','Apparel','Tops','—','forever 21, f21','Not on our current buy list.'],
+  ['Old Navy','n','Apparel','Tops, Jeans','—','old navy','Not on our current buy list.'],
+  ['Primark','n','Apparel','Tops','—','primark','Not on our current buy list.'],
+  ['Fashion Nova','n','Apparel','Dresses','—','fashion nova','Not on our current buy list.'],
+  ['Boohoo','n','Apparel','Dresses','—','boohoo, boohooman','Not on our current buy list.'],
+  ['Wonder Nation','n','Apparel','Kids','—','wonder nation','Not on our current buy list.'],
+  ['Time and Tru','n','Apparel','Tops','—','time and tru, time tru','Not on our current buy list.'],
+  ['Athletic Works','n','Activewear','Leggings','—','athletic works','Not on our current buy list.'],
+  ['Xhilaration','n','Apparel','Tops','—','xhilaration','Not on our current buy list.'],
+  ['Faded Glory','n','Apparel','Tops, Jeans','—','faded glory','Not on our current buy list.'],
+  ['No Boundaries','n','Apparel','Tops','—','no boundaries, no bo','Not on our current buy list.'],
+].map((r,i) => ({
+  id:'b'+i, name:r[0], status:r[1]==='y'?'accepted':'rejected', category:r[2],
+  itemTypes:r[3], styles:r[4], aliases:r[5], note:r[6]
+}));
+
+// ---- tiers and payouts ----
+// PLACEHOLDER NUMBERS. Every one of these is a guess and the app says so on
+// screen; they exist so the shape is testable, and so the thing to ask him for
+// is a spreadsheet of brand/tier/payout rather than the open question "what do
+// you pay", which nobody can answer in one sitting.
+//
+// A RANGE, not a single figure, because condition moves the price and a flat
+// number reads as a promise. LabelFindr publishes ranges for the same reason.
+const TIERS = {
+  premium:  { label:'Premium',  lo:28, hi:65 },
+  standard: { label:'Standard', lo:12, hi:28 },
+  budget:   { label:'Budget',   lo:5,  hi:12 },
+};
+const TIER_OF = {
+  premium: ['Gucci','Coach','Kate Spade','Tory Burch','Patagonia','Arc\u2019teryx',
+            'Canada Goose','The North Face','Ugg','Dr. Martens','Birkenstock',
+            'Ralph Lauren','Polo Ralph Lauren','Lacoste','Michael Kors','Vuori',
+            'lululemon','Alo Yoga','Free People','Madewell'],
+  budget:  ['Champion','Hanes','Gildan','Aeropostale','Hollister','American Eagle',
+            'Gap','Old Navy','Uniqlo','H&M'],
+};
+for(const b of SEED){
+  if(b.status !== 'accepted'){ b.tier = null; b.payLo = 0; b.payHi = 0; continue; }
+  b.tier = TIER_OF.premium.includes(b.name) ? 'premium'
+         : TIER_OF.budget.includes(b.name)  ? 'budget' : 'standard';
+  const t = TIERS[b.tier];
+  b.payLo = t.lo; b.payHi = t.hi;
+}
+// The middle of the range is what a running total has to use: adding up the
+// tops would quote somebody a number they will not get.
+const payMid = b => b && b.payLo ? Math.round((b.payLo + b.payHi) / 2) : 0;
+
+// A range exists because condition decides where in it you land, so condition
+// has to move the number or the range is decoration. These fractions are
+// guesses like the prices are - his to set.
+const COND = {
+  like: { label:'Like new', hint:'Barely worn, no flaws', f:0.85 },
+  good: { label:'Good',     hint:'Worn, nothing wrong with it', f:0.50 },
+  fair: { label:'Fair',     hint:'Visible wear', f:0.20 },
+};
+function payAt(b, cond){
+  if(!b || !b.payLo) return 0;
+  const f = (COND[cond] || COND.good).f;
+  return Math.round(b.payLo + (b.payHi - b.payLo) * f);
+}
+// What that brand actually makes, rather than a generic list you scroll past.
+function typesFor(b){
+  const t = (b && b.itemTypes ? b.itemTypes.split(',') : [])
+    .map(function(x){ return x.trim(); }).filter(Boolean);
+  return t.length ? t.concat('Other') : ['Top','Bottom','Dress','Outerwear','Other'];
+}
+
+// Conditional acceptance is real in this trade: a brand can be a yes for bags
+// and a no for the shoes with the same name on them. `excludes` holds the item
+// types turned down even though the brand itself is accepted.
+const EXCLUDES = {
+  'Coach':'Shoes, Top, Bottom, Dress', 'Kate Spade':'Shoes, Top, Bottom, Dress',
+  'Tory Burch':'Top, Bottom, Dress',   'Ugg':'Top, Bottom, Dress',
+  'Dr. Martens':'Top, Bottom, Dress',  'Birkenstock':'Top, Bottom, Dress',
+  'Champion':'Bag, Accessory',
+};
+for(const b of SEED) b.excludes = EXCLUDES[b.name] || '';
+
+
+
+const ITEM_TYPES = ['Top','Bottom','Dress','Outerwear','Denim','Activewear','Shoes','Bag','Accessory'];
+
+
+// Reference photos are held at 200px / JPEG q0.6 - about 8KB each. That is not
+// a compromise for the prototype's sake: an image feature print is computed off
+// a downscaled copy anyway, so full-resolution originals buy nothing and would
+// blow the storage budget on the first dozen brands. A real build keeps these
+// server-side; localStorage is only standing in.
+const REF_PX = 200, REF_Q = 0.6, REF_MAX = 5;
+
+function shrink(dataURI, px, q){
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      const scale = Math.min(1, px / Math.max(im.width, im.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.width * scale); c.height = Math.round(im.height * scale);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/jpeg', q));
+    };
+    im.onerror = () => res(null);
+    im.src = dataURI;
+  });
+}
+// Straight from the source on every load. Nothing edits the list on-device any
+// more, so keeping a cached copy would only let whatever a browser saw FIRST
+// shadow the real list for good - and there is no screen left to fix that from.
+let brands = SEED.slice();
+
+// Records saved by an earlier version predate fields added since. Backfill only
+// where the key is genuinely ABSENT - an empty string is a decision someone
+// a deliberate blank, and re-populating it would silently undo that.
+for(const b of brands){
+  if(b.excludes === undefined) b.excludes = EXCLUDES[b.name] || '';
+  if(!Array.isArray(b.refs))   b.refs     = [];
+}
+
+// ---- owner demo: edits to the buy list ----------------------------------
+// Snapshotted BEFORE any override lands, so "reset" has somewhere to go back
+// to. brands is a shallow copy of SEED, so these are the same objects - one
+// source of truth, and an edit is visible to the matcher immediately.
+const OWNKEY = 'kc_owner_brands_v1';
+const BRAND_DEFAULTS = {};
+for(const b of brands)
+  BRAND_DEFAULTS[b.id] = { status:b.status, tier:b.tier, payLo:b.payLo, payHi:b.payHi };
+
+let ownerEdits = {};
+try { ownerEdits = JSON.parse(localStorage.getItem(OWNKEY) || '{}') || {}; } catch(e){ ownerEdits = {}; }
+for(const b of brands){
+  const v = ownerEdits[b.id];
+  if(!v) continue;
+  if(v.status === 'accepted' || v.status === 'rejected') b.status = v.status;
+  if(b.status !== 'accepted'){ b.payLo = 0; b.payHi = 0; continue; }
+  // A rejected brand zeroes its pay, so restore the default before overriding.
+  if(!b.payLo){ b.payLo = BRAND_DEFAULTS[b.id].payLo; b.payHi = BRAND_DEFAULTS[b.id].payHi; }
+  if(typeof v.payLo === 'number') b.payLo = v.payLo;
+  if(typeof v.payHi === 'number') b.payHi = v.payHi;
+}
+// Reference photos are what fill the quota, and a silent failure here means he
+// edits the list, sees it on screen, and loses the lot on the next launch.
+
+// Brands people looked up that aren't on the list. This is the part that pays
+// for itself: absence from the list is not a rejection, it is a gap, and the
+// gaps worth closing are the ones that keep coming back.
+// ---------------------------------------------------------------------------
+// The matcher. This is the real thing — it is what a Swift/Kotlin port
+// reimplements line for line.
+// ---------------------------------------------------------------------------
+const norm = s => (s||'').toLowerCase()
+  .replace(/[‘’“”]/g,'')
+  .replace(/[^a-z0-9]+/g,' ')
+  .replace(/\s+/g,' ').trim();
+
+// Collapse the substitutions OCR actually makes on fabric: digits for letters,
+// and the rn/vv pairs that fall apart at low resolution.
+const skel = s => norm(s)
+  .replace(/rn/g,'m').replace(/vv/g,'w').replace(/cl/g,'d')
+  .replace(/[0o]/g,'o').replace(/[1li]/g,'i').replace(/[5s]/g,'s')
+  .replace(/[8b]/g,'b').replace(/[2z]/g,'z').replace(/[6g]/g,'g')
+  .replace(/\s+/g,'');
+
+// Damerau-Levenshtein (optimal string alignment). The transposition case is why
+// this isn't plain Levenshtein: swapping two adjacent letters - "raplh lauren",
+// "adidsa" - is the single most common typing error there is, and plain edit
+// distance scores it as two mistakes instead of one, which is usually enough to
+// push the right brand below the cutoff.
+function lev(a,b){
+  if(a===b) return 0;
+  if(!a.length || !b.length) return Math.max(a.length,b.length);
+  let prev2 = null;
+  let prev = Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+    const cur=[i];
+    for(let j=1;j<=b.length;j++){
+      const cost = a[i-1]===b[j-1] ? 0 : 1;
+      let v = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
+      // the transposition step
+      if(i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]){
+        v = Math.min(v, prev2[j-2]+1);
+      }
+      cur[j]=v;
+    }
+    prev2=prev; prev=cur;
+  }
+  return prev[b.length];
+}
+
+// ---------------------------------------------------------------------------
+// Typo-tolerant search. Separate from match() on purpose: match() reads a whole
+// blob of OCR text, this reads a few characters someone is still typing. The
+// cascade is ordered so a clean prefix always outranks a fuzzy hit - somebody
+// four letters into "lulu" must get lululemon first, never a near-miss on
+// something else.
+// ---------------------------------------------------------------------------
+function searchScore(b, q){
+  if(!q) return 0;
+  const qs = skel(q);
+  let best = 0, why = '';
+
+  for(const cand of namesOf(b)){
+    const n = norm(cand);
+    if(!n) continue;
+    const tight = n.replace(/ /g,'');            // "h m" -> "hm"
+    const words = n.split(' ').filter(Boolean);
+    const inits = words.map(w=>w[0]).join('');   // "the north face" -> "tnf"
+    let sc = 0;
+
+    if(n === q || tight === q)                       sc = 100;
+    else if(n.startsWith(q) || tight.startsWith(q))  sc = 92;
+    else if(words.some(w => w.startsWith(q)))        sc = 84;
+    else if(n.includes(q) || tight.includes(q))      sc = 74;
+    else if(q.length >= 2 && inits === q)            sc = 80;
+    else if(skel(tight).includes(qs) && qs.length>2) sc = 68;
+    else {
+      // How wrong we'll let it be, scaled to what was typed. Two characters get
+      // no slack at all - at that length everything is within one edit of
+      // everything else. From three up, one mistake is allowed, because "zra"
+      // for Zara is a real thing people type. The noise this lets in is capped
+      // by the cascade above: a fuzzy hit tops out at 62 and a clean substring
+      // scores 74, so a genuine match can never be buried under a near-miss.
+      const allow = q.length <= 2 ? 0 : q.length <= 5 ? 1 : q.length <= 8 ? 2 : 3;
+      if(allow){
+        // Compare against each word AND a leading window of the whole name, so
+        // a half-typed word still lands: "lululem" vs "lululemon" is a prefix
+        // gap, not a spelling mistake, and shouldn't be charged as one.
+        let d = Infinity;
+        for(const t of [tight, ...words]){
+          const win = t.slice(0, Math.min(t.length, q.length + 2));
+          d = Math.min(d, lev(qs, skel(t)), lev(qs, skel(win)));
+        }
+        if(d <= allow) sc = 62 - (d/(allow+1))*22;
+      }
+    }
+
+    if(sc > best){ best = sc; why = cand; }
+  }
+  return { score:best, why };
+}
+
+// Which spelling produced each hit, keyed by brand id. Deliberately NOT a
+// property on the brand: anything hung on those objects ends up in localStorage
+// and in the backup file, and a backup should carry the list, not the state of
+// whatever someone last typed into the search box.
+const whyMatched = new Map();
+
+// Ranked, filtered list. Empty query keeps plain alphabetical order.
+function searchBrands(list, q){
+  if(!q) return list.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  return list
+    .map(b => ({ b, ...searchScore(b, q) }))
+    .filter(r => r.score > 0)
+    .sort((x,y) => y.score - x.score || x.b.name.localeCompare(y.b.name))
+    .map(r => { whyMatched.set(r.b.id, (norm(r.why) !== norm(r.b.name)) ? r.why : ''); return r.b; });
+}
+
+function namesOf(b){
+  return [b.name, ...(b.aliases||'').split(',')]
+    .map(s=>s.trim()).filter(Boolean);
+}
+
+// Returns [{brand, score, via}] best first.
+function match(text){
+  const nText = norm(text), sText = skel(text);
+  const words = nText.split(' ').filter(w=>w.length>2);
+  const out = [];
+
+  for(const b of brands){
+    let best = 0, via = '';
+    for(const cand of namesOf(b)){
+      const nCand = norm(cand), sCand = skel(cand);
+      if(!nCand) continue;
+
+      if(nText.includes(nCand)){ if(1 > best){ best=1; via='exact'; } continue; }
+      if(sCand.length>3 && sText.includes(sCand)){ if(.88>best){ best=.88; via='ocr-tolerant'; } continue; }
+
+      // Word-level edit distance, with the allowance scaled to length so short
+      // names can't match on a single shared letter.
+      for(const w of words){
+        const d = lev(skel(w), sCand);
+        const allow = sCand.length<=5 ? 1 : sCand.length<=8 ? 2 : 3;
+        if(d<=allow){
+          const sc = .80 - (d/(allow+1))*.22;
+          if(sc>best){ best=sc; via='fuzzy'; }
+        }
+      }
+    }
+    if(best>0) out.push({brand:b, score:best, via});
+  }
+  out.sort((x,y)=>y.score-x.score);
+  return out;
+}
+
+const SAMPLES = [
+  ['lululemon tag','lululemon\n6\nMade in Vietnam'],
+  ['messy OCR','1u1u1em0n\nSIZE 6\nMADE IN VIETNAM'],
+  ['Zara','ZARA\nBASIC COLLECTION\nMADE IN MOROCCO'],
+  ['sub-label','WILFRED\nARITZIA\nSize S'],
+  ['worn North Face','THE N0RTH FAGE\n700 FILL DOWN\nSIZE M'],
+  ['care label only','100% COTTON\nMACHINE WASH COLD\nRN 54867'],
+  ['Shein','SHEIN\nPOLYESTER 95% SPANDEX 5%'],
+  ['smudged Nike','NlKE\nDRI-F1T\nMADE IN THAILAND'],
+];
+
+// ---------------------------------------------------------------------------
+// Screens
+// ---------------------------------------------------------------------------
+const SCREENS = [
+  ['home','1 · Home'], ['camera','2 · Scan'], ['scanning','3 · Reading'],
+  ['result','4/5 · Verdict'], ['unsure','6 · Not sure'], ['manual','No tag'],
+  ['join','Sign up'], ['account','Account'], ['box','Your box'], ['damage','Condition'], ['ship','Get label'], ['label','Shipment'],
+  ['browse','7 · Browse'], ['detail','7b · Brand'], ['how','How it works'], ['about','Settings'],
+  ['owner','Owner demo'], ['ownbrands','• Buy list'], ['ownintake','• Intake'],
+  ['ownmail','• Their email'],
+];
+const TAB_FOR = { box:'home', ship:'home', label:'home', damage:'home',
+                  join:'account', account:'account',
+                  home:'home', camera:'camera', scanning:'camera', result:'browse',
+                  unsure:'camera', manual:'camera', browse:'browse', detail:'browse',
+                  how:'home', about:'home',
+                  owner:'home', ownbrands:'home', ownintake:'home', ownmail:'home' };
+let current = 'home';
+
+
+function go(name){
+  // BEFORE anything else in here. The Account tab exists whether or not you
+  // have an account, and redirecting after the screens have swapped shows the
+  // empty profile for a frame and then argues with itself.
+  if(name === 'account' && !user) name = 'join';
+  // Same reasoning one step further out. A brand page is normally rendered by
+  // tapping a row in Browse; the jump chips navigate without rendering, so
+  // this chip alone would land on a blank phone. showDetail fills the element
+  // before it calls back in here, so the guard cannot recurse.
+  if(name === 'detail' && !document.getElementById('detailbody').innerHTML.trim()){
+    const sample = brands.find(x => x.status === 'accepted') || brands[0];
+    if(sample){ showDetail(sample); return; }
+  }
+  current = name;
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's'+'-'+name));
+  document.querySelectorAll('#jump button').forEach(b =>
+    b.setAttribute('aria-current', String(b.dataset.go === name)));
+  document.querySelectorAll('#tabbar button').forEach(b =>
+    b.setAttribute('aria-current', String(b.dataset.tab === TAB_FOR[name])));
+  const dark = name === 'home' || name === 'camera';
+  document.getElementById('statusbar').style.background = dark ? '#101311' : '';
+  document.getElementById('statusbar').style.color = dark ? '#fff' : '';
+  // The phone's own chrome follows the screen. Without this the browser bar is
+  // a white strip sitting on top of the hero.
+  const tc = document.getElementById('tcolor');
+  if(tc) tc.setAttribute('content',
+    dark ? '#101311'
+         : getComputedStyle(document.body).getPropertyValue('--paper').trim() || '#ffffff');
+  document.getElementById('tabbar').hidden = (name === 'camera' || name === 'scanning');
+  if(name === 'ship') paintShipConfirm();
+  if(name === 'owner') paintOwnerHub();
+  if(name === 'ownbrands') paintOwnerBrands();
+  // Landing on the list rather than wherever it was left last time.
+  if(name === 'ownintake'){ if(current !== 'ownintake') ownRef = null; paintOwnerIntake(); }
+  if(name === 'camera') startCam(); else stopCam();
+  const b = document.querySelector('#s-'+name+' .body'); if(b) b.scrollTop = 0;
+}
+
+// The entrance plays once per load. Taking the class off afterwards means a
+// card that un-hides later - the box, the account row - simply appears, rather
+// than waiting out a delay that was meant for first paint.
+// 3050ms is the swing: .95s of delay plus 2.1s of travel. Stripping the class
+// before that cut the hanger off mid-arc and snapped it back to level, which
+// looked like a bug because it was one. The margin is deliberate.
+setTimeout(function(){
+  const h = document.querySelector('.home');
+  if(h) h.classList.remove('intro');
+}, 3300);
+
+const jump = document.getElementById('jump');
+for(const [id,label] of SCREENS){
+  const b = document.createElement('button');
+  b.textContent = label; b.dataset.go = id;
+  b.onclick = () => { if(id==='result') demoResult(); else if(id==='unsure') demoUnsure(); else go(id); };
+  jump.appendChild(b);
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if(t && !t.closest('#jump')) go(t.dataset.go);
+});
+
+// ---------------------------------------------------------------------------
+// Camera
+// ---------------------------------------------------------------------------
+let stream = null, lastShot = null, lastText = '';
+const video = document.getElementById('video');
+const camhint = document.getElementById('camhint');
+
+async function startCam(){
+  if(stream) return;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ ideal:'environment' }, width:{ideal:1920} }, audio:false });
+    video.srcObject = stream;
+    camhint.textContent = 'Fill the frame with the brand tag';
+  }catch(err){
+    camhint.innerHTML = 'No camera here — use <b>Gallery</b> to pick a photo, or <b>Type it</b>.';
+  }
+}
+function stopCam(){
+  if(!stream) return;
+  stream.getTracks().forEach(t=>t.stop()); stream = null; video.srcObject = null;
+}
+
+function capture(){
+  if(stream && video.videoWidth){
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext('2d').drawImage(video,0,0);
+    lastShot = c.toDataURL('image/jpeg',.8);
+  }
+  openSheet();
+}
+document.getElementById('shutter').onclick = capture;
+document.getElementById('btn-gallery').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => {
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { lastShot = r.result; openSheet(); };
+  r.readAsDataURL(f);
+};
+// The camera's third control used to open the OCR-text sheet. It now routes to
+// the No Tag screen instead — typing a brand you can read is a different job
+// from supplying the text a scan would have produced, and conflating them made
+// the sheet do two unrelated things.
+
+const sheet = document.getElementById('sheet');
+function openSheet(){ sheet.classList.add('on'); document.getElementById('ocrtext').focus(); }
+document.getElementById('closesheet').onclick = () => sheet.classList.remove('on');
+
+const samples = document.getElementById('samples');
+for(const [label, text] of SAMPLES){
+  const b = document.createElement('button');
+  b.textContent = label;
+  b.onclick = () => { document.getElementById('ocrtext').value = text; };
+  samples.appendChild(b);
+}
+
+document.getElementById('runmatch').onclick = () => {
+  const text = document.getElementById('ocrtext').value.trim();
+  sheet.classList.remove('on');
+  runScan(text);
+};
+
+// ---------------------------------------------------------------------------
+// Scan → verdict
+// ---------------------------------------------------------------------------
+function runScan(text){
+  lastText = text || '';
+  go('scanning');
+  const steps = [...document.querySelectorAll('#steps div')];
+  steps.forEach(s=>s.classList.remove('done'));
+  steps.forEach((s,i)=> setTimeout(()=>s.classList.add('done'), 260 + i*380));
+  setTimeout(()=>{
+    const hits = match(text);
+    const top = hits[0];
+    if(top && top.score >= .78) showResult(top.brand, text);
+    else showUnsure(text, hits.slice(0,3));
+  }, 1500);
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function factRow(k,v){
+  return v && v !== '—'
+    ? '<li><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></li>' : '';
+}
+
+// One renderer, four verdicts. 'maybe' is a brand we buy that doesn't extend to
+// this item type; 'unknown' is a brand we have never ranked, which is NOT a no
+// and must never be shown as one.
+function showVerdict(o){
+  const b = o.brand, kind = o.kind;
+  const name = b ? b.name : o.name;
+  const HEAD = {
+    yes:     ['yes',     'We accept this brand'],
+    no:      ['no',      'We don\u2019t accept this brand'],
+    maybe:   ['maybe',   'Not this item, no'],
+    unknown: ['unknown', 'Not on our list yet'],
+  }[kind];
+  const MARK = {
+    yes:     '<svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg>',
+    no:      '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    maybe:   '<svg viewBox="0 0 24 24"><path d="M12 7.5v6M12 17v.2"/></svg>',
+    unknown: '<svg viewBox="0 0 24 24"><path d="M9.3 9.2a2.8 2.8 0 1 1 3.7 2.7v1.6M12 17v.2"/></svg>',
+  }[kind];
+
+  let facts = '';
+  if(b){
+    facts = '<ul class="facts">'+
+      (kind === 'yes' && b.payLo
+        ? '<li class="payrow"><span>We pay</span><b>$' + b.payLo + '\u2013$' + b.payHi +
+          '</b><small>' + TIERS[b.tier].label + ' \u00b7 depending on condition</small></li>'
+        : '')+
+      factRow('Category', b.category)+
+      factRow('Item types', b.itemTypes)+
+      (kind === 'yes' ? factRow('Common styles', b.styles) : '')+
+      (o.itemType ? factRow('You told us', o.itemType) : '')+
+      (kind === 'maybe' ? factRow('We don\u2019t take', b.excludes) : '')+
+    '</ul>';
+  } else if(o.itemType){
+    facts = '<ul class="facts">'+factRow('You told us', o.itemType)+'</ul>';
+  }
+
+  let note = '';
+  if(kind === 'maybe'){
+    note = '<div class="callout amber">'+
+      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>'+
+      '<span><b>The brand is a yes \u2014 this item isn\u2019t</b>We buy '+esc(b.name)+
+      ', just not their '+esc((o.itemType||'').toLowerCase())+'. Bring the rest.</span></div>';
+  } else if(kind === 'unknown'){
+    note = '<div class="callout amber">'+
+      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>'+
+      '<span><b>This isn\u2019t a no</b>We just haven\u2019t ranked '+esc(name)+
+      ' yet. We\u2019ve logged it \u2014 if it keeps coming up, we\u2019ll add it. Worth asking '+
+      'before you write the piece off.</span></div>';
+  } else if(b && b.note){
+    note = '<div class="callout '+(kind === 'yes' ? 'info' : 'warn')+'">'+
+      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>'+
+      '<span><b>Note</b>'+esc(b.note)+'</span></div>';
+  }
+
+  const action = {
+    yes:     '<button class="btn primary" data-addbox>Add to my box</button>'+
+             '<button class="btn ghost" data-go="camera">Scan another item</button>',
+    no:      '<button class="btn danger" data-go="browse">See what we do accept</button>',
+    maybe:   '<button class="btn primary" data-go="camera">Scan another item</button>',
+    unknown: '<button class="btn ghost" data-go="browse">Browse what we do take</button>',
+  }[kind];
+
+  lastVerdict = (kind === 'yes' && b) ? b : null;
+  document.getElementById('resultbody').innerHTML =
+    '<div class="verdict '+HEAD[0]+'"><span class="mk">'+MARK+'</span>'+HEAD[1]+'</div>'+
+    '<div class="brandhead">'+
+      '<h3 class="brandname">'+esc(name)+'</h3>'+
+      '<p class="brandsub">'+esc(b ? b.category : 'Not in our brand list')+'</p>'+
+    '</div>'+
+    facts + note +
+    '<div class="btnstack">'+action+
+      '<button class="btn ghost" data-go="manual">Check another item</button></div>'+
+    (o.text ? '<p style="padding:0 18px 22px;margin:0;font:400 11.5px/1.5 ui-monospace,'+
+      'SFMono-Regular,Menlo,monospace;color:var(--text-3)">read from label: '+
+      esc(o.text.replace(/\n/g,' \u00b7 '))+'</p>' : '');
+  go('result');
+}
+
+// Does this brand take this item type? Empty excludes means everything.
+function excluded(b, itemType){
+  if(!itemType || !b.excludes) return false;
+  return b.excludes.split(',').map(x=>norm(x)).filter(Boolean).includes(norm(itemType));
+}
+
+function showResult(b, scannedText, itemType){
+  const kind = b.status !== 'accepted' ? 'no'
+             : excluded(b, itemType)   ? 'maybe' : 'yes';
+  showVerdict({ kind, brand:b, text:scannedText, itemType });
+}
+
+function showUnsure(text, near){
+  document.getElementById('unsure-why').textContent = text
+    ? 'We couldn’t match "'+ text.split('\n')[0].slice(0,28) +'" to a brand on our list.'
+    : 'We couldn’t read a brand we recognise from that photo.';
+  const img = document.getElementById('unsure-shot');
+  if(lastShot){ img.src = lastShot; img.hidden = false; } else img.hidden = true;
+
+
+
+  const box = document.getElementById('unsure-near');
+  box.innerHTML = near.length
+    ? '<p style="font-size:12px;color:var(--text-3);margin:4px 0 7px">Did you mean —</p>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">'+
+      near.map(h=>'<button class="btn ghost" style="width:auto;padding:8px 13px;font-size:13px" data-near="'+h.brand.id+'">'+esc(h.brand.name)+'</button>').join('')+
+      '</div>' : '';
+  box.querySelectorAll('[data-near]').forEach(btn => btn.onclick = () => {
+    showResult(brands.find(b=>b.id===btn.dataset.near), text);
+  });
+  go('unsure');
+}
+
+function demoResult(){ showResult(brands.find(b=>b.name==='lululemon') || brands[0], 'lululemon · 6 · Made in Vietnam'); }
+function demoUnsure(){ lastShot = null; showUnsure('100% COTTON', match('100% COTTON').slice(0,3)); }
+
+
+// ---------------------------------------------------------------------------
+// The box
+// ---------------------------------------------------------------------------
+// Nobody mails one jacket. Someone clearing a wardrobe checks a dozen things and
+// then ships the lot, so an accepted brand joins a running list rather than
+// clearing the screen.
+//
+// Postage is on the company and there is no minimum - one shirt gets the same
+// free label as thirty. That is his call; it does mean a one-item box can cost
+// more to receive than it is worth.
+const USERKEY = 'kc_user_v1';
+let user = null;
+try { user = JSON.parse(localStorage.getItem(USERKEY) || 'null'); } catch(e){ user = null; }
+const BOXKEY = 'kc_box_v1', SHIPKEY = 'kc_shipments_v1';
+let lastVerdict = null;
+
+// One line per garment, not one per brand. The donate-or-return choice belongs
+// to the item - somebody wants the jacket back and does not care about the tee -
+// and a row that collapses three pieces into "x3" cannot say that.
+let lidSeq = 0;
+function newLid(){ return 'l' + Date.now().toString(36) + (lidSeq++).toString(36); }
+// The account setting is the default for new lines, not the rule for all of them.
+// Always the reversible one. An item posted back can still be donated later;
+// an item donated cannot be posted back. Donating is chosen per garment in the
+// box, and nowhere else.
+function defaultRej(){ return 'return'; }
+
+let box = [];
+try { box = JSON.parse(localStorage.getItem(BOXKEY) || '[]'); } catch(e){ box = []; }
+// Boxes saved before the split are {id,name,category,qty}. Expand them instead
+// of dropping them: somebody has a packed box in their browser right now.
+box = box.reduce(function(out, r){
+  if(r.lid && r.qty === undefined){ out.push(r); return out; }
+  for(let i = 0; i < Math.max(1, parseInt(r.qty, 10) || 1); i++)
+    out.push({ lid:newLid(), id:r.id, name:r.name, category:r.category,
+               rej: r.rej === 'donate' ? 'donate' : 'return' });
+  return out;
+}, []);
+// Lines saved before type and condition existed. Backfill rather than drop.
+for(const r of box){
+  if(!r.type) r.type = typesFor(brands.find(function(x){ return x.id === r.id; }))[0];
+  if(!COND[r.cond]) r.cond = 'good';
+}
+// Write the migrated shape back now. Otherwise it re-migrates on every load and
+// the line ids churn, which would break a remove button held across a reload.
+saveBox();
+function saveBox(){ try { localStorage.setItem(BOXKEY, JSON.stringify(box)); } catch(e){} }
+function boxCount(){ return box.length; }
+// An estimate, and labelled as one everywhere it appears. Condition is assessed
+// at the warehouse, so a figure presented as final would be a promise the app
+// is in no position to make.
+function boxValue(){
+  return box.reduce(function(sum, r){
+    return sum + payAt(brands.find(function(x){ return x.id === r.id; }), r.cond);
+  }, 0);
+}
+
+function addToBox(b){
+  box.push({ lid:newLid(), id:b.id, name:b.name, category:b.category,
+             type: typesFor(b)[0], cond: 'good', rej: defaultRej() });
+  saveBox(); paintBox();
+}
+function removeFromBox(lid){
+  const i = box.findIndex(function(r){ return r.lid === lid; });
+  if(i < 0) return;
+  box.splice(i, 1);
+  saveBox(); paintBox();
+}
+function setLine(lid, field, v){
+  const r = box.find(function(x){ return x.lid === lid; });
+  if(!r) return;
+  if(field === 'cond' && !COND[v]) return;
+  r[field] = v; saveBox(); paintBox();
+}
+function setRej(lid, v){
+  const r = box.find(function(x){ return x.lid === lid; });
+  if(!r || (v !== 'return' && v !== 'donate')) return;
+  r.rej = v; saveBox(); paintBox();
+}
+
+function paintBox(){
+  const n = boxCount();
+
+  const st = document.getElementById('box-status');
+  if(st){
+    st.innerHTML = n === 0
+      ? 'Nothing in the box yet. Check a brand and add it here.'
+      : '<b>' + n + (n === 1 ? ' item' : ' items') + ' in the box, worth about $'
+        + boxValue() + '.</b> Send it whenever you like &mdash; postage is on us.';
+  }
+
+  // Only worth saying when somebody has actually chosen it.
+  const dn = document.getElementById('box-donate-note');
+  if(dn) dn.hidden = !box.some(function(r){ return r.rej === 'donate'; });
+
+  const list = document.getElementById('box-list');
+  if(list){
+    list.innerHTML = box.length
+      ? box.map(function(r){
+          const b = brands.find(function(x){ return x.id === r.id; });
+          const on = function(v){ return r.rej === v ? ' aria-pressed="true"' : ' aria-pressed="false"'; };
+          return '<div class="boxrow">' +
+            '<div class="br-top">' +
+              '<div class="nm">' + esc(r.name) + '</div>' +
+              '<span class="ct">~$' + payAt(b, r.cond) + '</span>' +
+              '<button class="rm" data-rmbox="' + esc(r.lid) +
+              '" aria-label="Remove this ' + esc(r.name) + '">\u2212</button>' +
+            '</div>' +
+            '<div class="br-meta">' +
+              '<select data-bxset="' + esc(r.lid) + '|type" aria-label="What is it">' +
+                typesFor(b).map(function(t){
+                  return '<option' + (t === r.type ? ' selected' : '') + '>' + esc(t) + '</option>';
+                }).join('') +
+              '</select>' +
+              '<select data-bxset="' + esc(r.lid) + '|cond" aria-label="What condition">' +
+                Object.keys(COND).map(function(k){
+                  return '<option value="' + k + '"' + (k === r.cond ? ' selected' : '') + '>' +
+                    COND[k].label + '</option>';
+                }).join('') +
+              '</select>' +
+            '</div>' +
+            '<span class="br-hint">' + esc(COND[r.cond || 'good'].hint) + '</span>' +
+            '<div class="br-rej"><span class="br-lb">If we can\u2019t take it</span>' +
+              '<button data-rejset="' + esc(r.lid) + '|return"' + on('return') + '>Send back</button>' +
+              '<button data-rejset="' + esc(r.lid) + '|donate"' + on('donate') + '>Donate</button>' +
+            '</div></div>';
+        }).join('')
+      : '<p class="boxempty">An empty box. Nothing to send yet.</p>';
+  }
+
+  const home = document.getElementById('home-box');
+  if(home){
+    home.hidden = n === 0;
+    document.getElementById('home-box-n').textContent = n;
+    document.getElementById('home-box-sub').textContent =
+      'Ready to send \u2014 postage on us';
+  }
+
+  const act = document.getElementById('box-actions');
+  if(act){
+    // An account is required before a label, because the label, the box and the
+    // payout all have to hang off one record.
+    const next = !user ? '<button class="btn primary" id="box-join">Create an account to send</button>'
+                       : '<button class="btn primary" data-go="ship">Get my shipping label</button>';
+    act.innerHTML = (box.length
+      ? next + '<button class="btn ghost" data-go="camera">Add more first</button>'
+      : '<button class="btn primary" data-go="camera">Add something first</button>')
+      + '<button class="btn ghost" data-go="damage">What condition can I send?</button>'
+      + (box.length ? '<button class="btn ghost" id="box-clear">Empty the box</button>' : '');
+  }
+}
+
+// ---- the shipment number -------------------------------------------------
+// Read aloud, written on boxes and quoted back in emails, so the alphabet drops
+// every character that gets misheard or mistyped: no O or 0, no I, L or 1.
+// Random rather than sequential - a counter tells anyone who looks how much
+// volume the business does, and lets them guess somebody else's number.
+const REF_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+function newRef(){
+  const a = new Uint32Array(6);
+  if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+  else for(let i = 0; i < a.length; i++) a[i] = Math.floor(Math.random() * 4294967295);
+  let out = '';
+  for(let i = 0; i < a.length; i++) out += REF_ALPHABET[a[i] % REF_ALPHABET.length];
+  return 'KC-' + out;
+}
+
+// A stand-in for the carrier's code, drawn from the reference so it stays put
+// for a given shipment instead of reshuffling on every repaint. The real one
+// comes back from the carrier and is not ours to invent.
+function drawMockQR(cv, seed){
+  const g = cv.getContext('2d'), N = 25, px = cv.width / N;
+  let h = 2166136261;
+  for(let i = 0; i < seed.length; i++){ h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  function rnd(){ h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return (h >>> 0) / 4294967296; }
+  g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+  g.fillStyle = '#111';
+  function inFinder(x, y){
+    return (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+  }
+  for(let y = 0; y < N; y++) for(let x = 0; x < N; x++)
+    if(!inFinder(x, y) && rnd() > 0.52) g.fillRect(x * px, y * px, px, px);
+  function finder(cx, cy){
+    for(let y = 0; y < 7; y++) for(let x = 0; x < 7; x++){
+      const edge = x === 0 || y === 0 || x === 6 || y === 6;
+      const core = x > 1 && x < 5 && y > 1 && y < 5;
+      if(edge || core) g.fillRect((cx + x) * px, (cy + y) * px, px, px);
+    }
+  }
+  finder(0, 0); finder(N - 7, 0); finder(0, N - 7);
+}
+
+function issueLabel(email, payMethod, payHandle){
+  const ref = newRef();
+  const shipment = { ref: ref, email: email, at: Date.now(), status: 'sent',
+    payMethod: payMethod, payHandle: payHandle, how: sendHow,
+    value: boxValue(),
+    items: box.map(function(r){
+      return { name:r.name, brand_id:r.id, type:r.type, cond:r.cond, rejects:r.rej }; }),
+    count: boxCount() };
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(SHIPKEY) || '[]'); } catch(e){}
+  all.unshift(shipment);
+  try { localStorage.setItem(SHIPKEY, JSON.stringify(all)); } catch(e){}
+
+  document.getElementById('label-ref').textContent = ref;
+  drawMockQR(document.getElementById('label-qr'), ref);
+  document.getElementById('label-facts').innerHTML =
+    '<div><span>Items</span><span>' + shipment.count + '</span></div>' +
+    '<div><span>Emailed to</span><span>' + esc(email) + '</span></div>' +
+    '<div><span>Paid by</span><span>' + esc(payMethod) + ' &middot; ' + esc(payHandle) + '</span></div>' +
+    '<div><span>Worth about</span><span>$' + shipment.value + '</span></div>' +
+    '<div><span>' + (sendHow === 'drop' ? 'Bringing it in' : 'Postage') + '</span><span>' +
+      (sendHow === 'drop' ? 'Address emailed to you' : 'Paid by KollectionCloset') + '</span></div>' +
+    '<div><span>Keep this number</span><span>' + ref + '</span></div>';
+
+  // The box has become a shipment; leaving it filled would let the next label
+  // count everything in it a second time.
+  box = []; saveBox(); paintBox();
+  paintAccount();          // the new shipment belongs in the history straight away
+  go('label');
+}
+
+document.addEventListener('click', function(e){
+  if(e.target.closest('[data-addbox]')){
+    if(lastVerdict){ addToBox(lastVerdict); go('box'); }
+    return;
+  }
+  const rm = e.target.closest('[data-rmbox]');
+  if(rm){ removeFromBox(rm.dataset.rmbox); return; }
+  const rj = e.target.closest('[data-rejset]');
+  if(rj){ const p = rj.dataset.rejset.split('|'); setRej(p[0], p[1]); return; }
+  if(e.target.closest('#box-clear')){ box = []; saveBox(); paintBox(); return; }
+  if(e.target.closest('#label-new')){ go('camera'); return; }
+  if(e.target.closest('#box-join')){ pendingShip = true; go('join'); return; }
+});
+
+// Everything this screen needs is already on the profile, so it confirms rather
+// than asks. Typing an email here a second time would be the app forgetting who
+// you are one screen after you told it.
+let sendHow = 'ship';
+// Per item now, so the confirm line has to be able to say "some of each".
+function rejSummary(){
+  const d = box.filter(function(r){ return r.rej === 'donate'; }).length;
+  const b = box.length - d;
+  if(!d) return 'All posted back, free';
+  if(!b) return 'All donated for you';
+  return b + ' back, ' + d + ' donated';
+}
+
+function paintShipConfirm(){
+  const el = document.getElementById('ship-confirm');
+  if(!el || !user) return;
+  const dropping = sendHow === 'drop';
+  document.getElementById('ship-go').textContent =
+    dropping ? 'Get my drop-off code' : 'Email me the QR code';
+  el.innerHTML =
+    '<div><span>Items</span><span>' + boxCount() + '</span></div>' +
+    '<div><span>Worth about</span><span>$' + boxValue() + '</span></div>' +
+    '<div><span>' + (dropping ? 'Bring it to' : 'Label to') + '</span><span>' +
+      (dropping ? 'Our unit \u2014 address emailed' : esc(user.email)) + '</span></div>' +
+    '<div><span>Paid by</span><span>' + esc(user.payMethod) + ' &middot; ' + esc(user.payHandle) + '</span></div>' +
+    '<div><span>Anything we pass on</span><span>' + rejSummary() + '</span></div>';
+}
+(function(){
+  for(const b of document.querySelectorAll('.payopt[data-how]')){
+    b.onclick = function(){
+      sendHow = b.dataset.how;
+      for(const o of document.querySelectorAll('.payopt[data-how]')) o.classList.toggle('on', o === b);
+      paintShipConfirm();
+    };
+  }
+})();
+(function(){
+  const btn = document.getElementById('ship-go');
+  if(!btn) return;
+  btn.onclick = function(){
+    if(!user){ pendingShip = true; go('join'); return; }
+    issueLabel(user.email, user.payMethod, user.payHandle);
+  };
+})();
+
+paintBox();
+
+
+// ---------------------------------------------------------------------------
+// Seller profiles
+// ---------------------------------------------------------------------------
+// A profile exists so the label, the box and the payout all hang off one
+// record, and so somebody can come back and see where their stuff is. That is
+// the whole case for it - without one, every box is an anonymous parcel and the
+// only way to answer "where is my money" is to search an inbox.
+//
+// Stored in localStorage HERE because this is a prototype with no server. In
+// the real thing it is a row in a database and this file talks to it over the
+// network; nothing else about the screens changes.
+function saveUser(){
+  try { user ? localStorage.setItem(USERKEY, JSON.stringify(user))
+             : localStorage.removeItem(USERKEY); } catch(e){}
+  paintAccount(); paintBox();
+}
+
+function paintAccount(){
+  // Only for strangers. Once you are signed in the tab bar carries this, and a
+  // row saying the same thing is the screen repeating itself.
+  const gate = document.getElementById('home-account');
+  if(gate){
+    gate.hidden = !!user;
+    if(!user){
+      gate.querySelector('b').textContent = 'Create an account';
+      gate.querySelector('small').textContent = 'Needed before you can send a box';
+    }
+  }
+  if(!user) return;
+  const n = document.getElementById('acc-name'), sub = document.getElementById('acc-sub');
+  if(n) n.textContent = user.name;
+  if(sub) sub.textContent = user.email + ' \u00b7 paid by ' + user.payMethod + ' ' + user.payHandle;
+
+  const list = document.getElementById('acc-ships');
+  if(!list) return;
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(SHIPKEY) || '[]'); } catch(e){}
+  list.innerHTML = all.length
+    ? all.map(function(sh){
+        const d = new Date(sh.at);
+        return '<div class="shiprow"><div class="sr-tx"><b>' + esc(sh.ref) + '</b>' +
+          '<small>' + sh.count + ' items \u00b7 ' +
+          d.toLocaleDateString(undefined,{day:'numeric',month:'short'}) + '</small></div>' +
+          '<span class="sr-st ' + SHIP_ST[sh.status || 'sent'][0] + '">' +
+          SHIP_ST[sh.status || 'sent'][1] +
+          (sh.status === 'paid' && sh.totalPaid != null ? ' \u00b7 $' + sh.totalPaid : '') +
+          '</span></div>';
+      }).join('')
+    : '<p class="accempty">Nothing sent yet. Build a box and we\u2019ll send you a label.</p>';
+}
+
+(function(){
+  let m = 'Zelle';
+  const HINT = { 'Zelle':'Phone or email for Zelle', 'Cash App':'Your $cashtag',
+                 'PayPal':'PayPal email' };
+  const handle = document.getElementById('join-handle');
+  for(const b of document.querySelectorAll('.payopt[data-jpay]')){
+    b.onclick = function(){
+      m = b.dataset.jpay;
+      for(const o of document.querySelectorAll('.payopt[data-jpay]')) o.classList.toggle('on', o === b);
+      handle.placeholder = HINT[m];
+    };
+  }
+  // Coming back to edit should show what is already there, not an empty form.
+  document.getElementById('acc-edit').addEventListener('click', function(){
+    if(!user) return;
+    document.getElementById('join-name').value = user.name;
+    document.getElementById('join-email').value = user.email;
+    document.getElementById('join-handle').value = user.payHandle;
+    m = user.payMethod;
+    for(const o of document.querySelectorAll('.payopt[data-jpay]'))
+      o.classList.toggle('on', o.dataset.jpay === m);
+    handle.placeholder = HINT[m];
+    document.getElementById('join-title').textContent = 'Your details';
+    document.getElementById('join-sub').textContent =
+      'Change any of this. It applies to boxes you send from now on.';
+    document.getElementById('join-go').textContent = 'Save';
+  });
+
+  document.getElementById('join-go').onclick = function(){
+    const name = document.getElementById('join-name').value.trim();
+    const email = document.getElementById('join-email').value.trim();
+    const h = handle.value.trim();
+    const nOK = name.length >= 2, eOK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email), hOK = h.length >= 4;
+    document.getElementById('join-name-err').hidden = nOK;
+    document.getElementById('join-email-err').hidden = eOK;
+    document.getElementById('join-handle-err').hidden = hOK;
+    if(!nOK) return document.getElementById('join-name').focus();
+    if(!eOK) return document.getElementById('join-email').focus();
+    if(!hOK) return handle.focus();
+    user = { name: name, email: email, payMethod: m, payHandle: h,
+             since: Date.now() };
+    saveUser();
+    go(pendingShip ? 'ship' : 'account');
+    pendingShip = false;
+  };
+
+  document.getElementById('acc-out').onclick = function(){ user = null; saveUser(); go('home'); };
+})();
+
+// Set when the box sent somebody to sign up, so they land back on the label
+// rather than on their profile wondering what happened to the box.
+let pendingShip = false;
+
+// ---------------------------------------------------------------------------
+// Browse
+// ---------------------------------------------------------------------------
+const CATS = ['All','Activewear','Apparel','Outerwear','Denim','Shoes','Accessories'];
+let cat = 'All';
+const chips = document.getElementById('chips');
+for(const c of CATS){
+  const b = document.createElement('button');
+  b.textContent = c; b.setAttribute('aria-pressed', String(c===cat));
+  b.onclick = () => { cat = c;
+    chips.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', String(x.textContent===c)));
+    paintBrowse(); };
+  chips.appendChild(b);
+}
+document.getElementById('q').oninput = paintBrowse;
+
+function initials(n){
+  const p = n.replace(/[^\w\s]/g,'').split(/\s+/).filter(Boolean);
+  return ((p[0]||'')[0] + (p[1]?p[1][0]:(p[0]||'')[1]||'')).toUpperCase();
+}
+
+function paintBrowse(){
+  const q = norm(document.getElementById('q').value);
+  const rows = searchBrands(brands.filter(b => cat==='All' || b.category===cat), q);
+
+  document.getElementById('blist').innerHTML = rows.length ? rows.map(b =>
+    '<li data-id="'+b.id+'">'+
+      '<span class="mono">'+esc(initials(b.name))+'</span>'+
+      '<span class="tx"><b>'+esc(b.name)+'</b><small>'+
+        (whyMatched.get(b.id) ? 'matched “'+esc(whyMatched.get(b.id))+'”' :
+          esc(b.category)+(b.itemTypes?' · '+esc(b.itemTypes):''))+'</small></span>'+
+      '<span class="badge '+(b.status==='accepted'?'yes':'no')+'">'+
+        (b.status==='accepted'?'Accepted':'Rejected')+'</span>'+
+    '</li>').join('')
+    : '<li style="display:block"><p class="empty">Nothing close to that on our list.<br>'+
+      '<button class="btn ghost" style="width:auto;margin:12px auto 0;padding:9px 15px" '+
+      'data-go="manual">Check it anyway</button></p></li>';
+
+  document.querySelectorAll('#blist li[data-id]').forEach(li => li.onclick = () => {
+    showDetail(brands.find(b=>b.id===li.dataset.id));
+  });
+}
+
+function showDetail(b){
+  const yes = b.status==='accepted';
+  document.getElementById('detailbody').innerHTML =
+    '<div class="brandhead">'+
+      '<h3 class="brandname">'+esc(b.name)+'</h3>'+
+      '<p class="brandsub">'+esc(b.category)+'</p>'+
+      '<span class="badge '+(yes?'yes':'no')+'" style="display:inline-block;margin-top:12px;padding:6px 13px">'+
+        (yes?'We accept this brand':'Not accepted')+'</span>'+
+    '</div>'+
+    '<ul class="facts">'+
+      factRow('Category', b.category)+
+      factRow('Item types', b.itemTypes)+
+      (yes ? factRow('Common styles', b.styles) : '')+
+      factRow('Also printed as', b.aliases)+
+    '</ul>'+
+    (b.note ? '<div class="callout '+(yes?'info':'warn')+'">'+
+      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>'+
+      '<span><b>Note</b>'+esc(b.note)+'</span></div>' : '')+
+    '<div class="btnstack"><button class="btn ghost" data-go="browse">Back to all brands</button></div>';
+  go('detail');
+}
+
+// ---------------------------------------------------------------------------
+// No tag: type the brand and what it is
+// ---------------------------------------------------------------------------
+const mBrand   = document.getElementById('m-brand');
+const mSuggest = document.getElementById('m-suggest');
+let mPicked = null, mType = '';
+
+const mTypes = document.getElementById('m-types');
+for(const t of ITEM_TYPES){
+  const b = document.createElement('button');
+  b.textContent = t; b.setAttribute('aria-pressed','false');
+  b.onclick = () => {
+    mType = (mType === t) ? '' : t;
+    mTypes.querySelectorAll('button').forEach(x =>
+      x.setAttribute('aria-pressed', String(x.textContent === mType)));
+  };
+  mTypes.appendChild(b);
+}
+
+function paintSuggest(){
+  const q = norm(mBrand.value);
+  if(q.length < 2){ mSuggest.hidden = true; return; }
+
+  const hits = searchBrands(brands, q).slice(0, 6);
+
+  if(hits.length){
+    mSuggest.innerHTML = hits.map(b =>
+      '<button type="button" data-id="'+b.id+'">'+
+        '<span class="dot '+(b.status === 'accepted' ? 'yes' : 'no')+'"></span>'+
+        '<span class="nm">'+esc(b.name)+
+          (whyMatched.get(b.id) ? '<br><span style="font-weight:400;font-size:11px;color:var(--text-3)">'+
+            esc(whyMatched.get(b.id))+'</span>' : '')+'</span>'+
+        '<span style="font-size:11.5px;color:var(--text-3)">'+esc(b.category)+'</span>'+
+      '</button>').join('');
+    mSuggest.querySelectorAll('button').forEach(btn => btn.onclick = () => {
+      mPicked = brands.find(b => b.id === btn.dataset.id);
+      mBrand.value = mPicked.name;
+      mSuggest.hidden = true;
+    });
+  } else {
+    mSuggest.innerHTML = '<p class="none">No brand of ours matches that. '+
+      'Check it anyway and we\u2019ll log it \u2014 that\u2019s how brands get added.</p>';
+  }
+  mSuggest.hidden = false;
+}
+mBrand.oninput = () => { mPicked = null; paintSuggest(); };
+mBrand.onfocus = paintSuggest;
+document.addEventListener('click', e => {
+  if(!e.target.closest('.typeahead')) mSuggest.hidden = true;
+});
+
+document.getElementById('m-check').onclick = () => {
+  const typed = mBrand.value.trim();
+  if(!typed){ mBrand.focus(); return; }
+  mSuggest.hidden = true;
+
+  // A picked suggestion is certain. Typed text goes through the same matcher
+  // the camera path uses - it is just cleaner input than OCR gives.
+  const b = mPicked || (match(typed)[0] && match(typed)[0].score >= .78 ? match(typed)[0].brand : null);
+
+  if(b) showResult(b, null, mType);
+  else showVerdict({ kind:'unknown', name:typed, itemType:mType });
+};
+
+function paintStats(){
+  // Real, and worth saying: it is the one number on the screen that is not a claim.
+  const hc = document.getElementById('home-count');
+  if(hc) hc.textContent = brands.filter(b => b.status === 'accepted').length;
+  document.getElementById('stat-total').textContent = brands.length;
+  document.getElementById('stat-yes').textContent = brands.filter(b=>b.status==='accepted').length;
+  document.getElementById('stat-no').textContent  = brands.filter(b=>b.status==='rejected').length;
+}
+
+
+// ---------------------------------------------------------------------------
+// Owner demo
+// ---------------------------------------------------------------------------
+// NO PASSCODE, on purpose. A code that ships inside the page is readable in
+// view-source, so it would hide this panel rather than protect it, and a lock
+// that only looks like a lock is worse than an honest warning. Every screen
+// here carries a banner saying what it is. The real thing is a separate
+// sign-in against the database - see BACKEND.md.
+//
+// Everything written here goes to this browser. Nobody else sees it.
+
+const SHIP_ST = { sent:['sent','On its way'], received:['recv','Received'],
+                  assessed:['assd','Assessed'], paid:['paid','Paid'] };
+
+function saveOwnerEdits(){
+  try { localStorage.setItem(OWNKEY, JSON.stringify(ownerEdits)); } catch(e){}
+  // The seller's side reads the same array, so it has to be repainted now -
+  // otherwise a brand he just rejected still says Accepted on the next screen.
+  paintStats(); paintBrowse(); paintBox(); paintOwnerHub();
+}
+
+function setBrandStatus(id, status){
+  const b = brands.find(function(x){ return x.id === id; });
+  if(!b) return;
+  b.status = status;
+  if(status === 'accepted'){
+    // Coming back from rejected: its pay was zeroed, so restore the default.
+    if(!b.payLo){ b.payLo = BRAND_DEFAULTS[id].payLo; b.payHi = BRAND_DEFAULTS[id].payHi; }
+  } else { b.payLo = 0; b.payHi = 0; }
+  ownerEdits[id] = { status:b.status, payLo:b.payLo, payHi:b.payHi };
+  saveOwnerEdits(); paintOwnerBrands();
+}
+
+function setBrandPay(id, which, raw){
+  const b = brands.find(function(x){ return x.id === id; });
+  if(!b) return;
+  let v = Math.max(0, Math.min(999, parseInt(raw, 10) || 0));
+  if(which === 'lo') b.payLo = v; else b.payHi = v;
+  // A low above a high would quote "$40 to $12" on the seller's screen.
+  if(b.payHi < b.payLo){ if(which === 'lo') b.payHi = b.payLo; else b.payLo = b.payHi; }
+  ownerEdits[id] = { status:b.status, payLo:b.payLo, payHi:b.payHi };
+  saveOwnerEdits();
+}
+
+function paintOwnerHub(){
+  const yes = brands.filter(function(b){ return b.status === 'accepted'; }).length;
+  const edits = Object.keys(ownerEdits).length;
+  const sum = document.getElementById('own-sum');
+  if(sum) sum.textContent = yes + ' of ' + brands.length + ' accepted' +
+    (edits ? '  \u00b7  ' + edits + ' edited' : '');
+  const all = ownerShipments();
+  const open = all.filter(function(x){ return (x.status || 'sent') !== 'paid'; }).length;
+  const ins = document.getElementById('own-insum');
+  if(ins) ins.textContent = all.length
+    ? open + ' waiting \u00b7 ' + all.length + ' total'
+    : 'Nothing sent yet \u2014 send a box first';
+}
+
+let ownQ = '';
+function paintOwnerBrands(){
+  const el = document.getElementById('own-list');
+  if(!el) return;
+  const q = norm(ownQ);
+  const rows = brands.filter(function(b){ return !q || norm(b.name).indexOf(q) >= 0; });
+  el.innerHTML = rows.length ? rows.map(function(b){
+    const yes = b.status === 'accepted';
+    return '<div class="ownrow">' +
+      '<div class="or-top"><b>' + esc(b.name) + '</b><div class="or-seg">' +
+        '<button data-ownset="' + b.id + '|accepted" aria-pressed="' + yes + '">Accept</button>' +
+        '<button data-ownset="' + b.id + '|rejected" aria-pressed="' + (!yes) + '">Reject</button>' +
+      '</div></div>' +
+      (yes ? '<div class="or-pay"><span>We pay $</span>' +
+        '<input type="number" min="0" max="999" inputmode="numeric" value="' + b.payLo + '" data-ownpay="' + b.id + '|lo">' +
+        '<span>to $</span>' +
+        '<input type="number" min="0" max="999" inputmode="numeric" value="' + b.payHi + '" data-ownpay="' + b.id + '|hi">' +
+      '</div>' : '') +
+    '</div>';
+  }).join('') : '<p class="empty" style="padding:22px 18px">Nothing matches that.</p>';
+}
+
+function ownerShipments(){
+  try { return JSON.parse(localStorage.getItem(SHIPKEY) || '[]'); } catch(e){ return []; }
+}
+function putShipments(all){
+  try { localStorage.setItem(SHIPKEY, JSON.stringify(all)); } catch(e){}
+  paintAccount(); paintOwnerHub();
+}
+
+let ownRef = null;
+function paintOwnerIntake(){
+  const el = document.getElementById('own-in');
+  if(!el) return;
+  document.getElementById('own-in-ttl').textContent = ownRef || 'Boxes Coming In';
+  document.getElementById('own-in-back').dataset.go = ownRef ? 'ownintake' : 'owner';
+
+  const all = ownerShipments();
+  if(!ownRef){
+    el.innerHTML = all.length ? all.map(function(sh){
+      const st = SHIP_ST[sh.status || 'sent'];
+      return '<div class="shiprow" data-ownref="' + esc(sh.ref) + '" style="cursor:pointer">' +
+        '<div class="sr-tx"><b>' + esc(sh.ref) + '</b><small>' + sh.count + ' items \u00b7 ' +
+        new Date(sh.at).toLocaleDateString(undefined,{day:'numeric',month:'short'}) + '</small></div>' +
+        '<span class="sr-st ' + st[0] + '">' + st[1] + '</span></div>';
+    }).join('') : '<p class="empty" style="padding:24px 18px">No boxes yet. Send one from the ' +
+      'seller side first \u2014 build a box, make an account, get a label.</p>';
+    return;
+  }
+
+  const sh = all.find(function(x){ return x.ref === ownRef; });
+  if(!sh){ ownRef = null; return paintOwnerIntake(); }
+  const status = sh.status || 'sent';
+  const total = (sh.items || []).reduce(function(n, it){
+    return n + (it.accepted ? (Number(it.price) || 0) : 0); }, 0);
+
+  el.innerHTML =
+    '<div class="pad" style="padding-bottom:6px"><p style="margin:0;font-size:13px;color:var(--text-2)">' +
+      esc(sh.email) + ' \u00b7 paid by ' + esc(sh.payMethod) + ' ' + esc(sh.payHandle) +
+      '<br>Quoted about <b>$' + sh.value + '</b> when it was sent.</p></div>' +
+    (status === 'sent'
+      ? '<div class="pad"><button class="btn primary" data-ownact="received">Mark this box received</button></div>'
+      : '') +
+    (sh.items || []).map(function(it, i){
+      const dec = it.accepted === false, acc = it.accepted === true;
+      return '<div class="itrow">' +
+        '<div class="it-top"><b>' + esc(it.name) + '</b><div class="it-seg">' +
+          '<button data-itset="' + i + '|y" aria-pressed="' + acc + '">Take it</button>' +
+          '<button data-itset="' + i + '|n" aria-pressed="' + dec + '">Pass</button>' +
+        '</div></div>' +
+        '<div class="it-meta">' + esc(it.type || 'Item') + ' \u00b7 they said <b>' +
+          esc((COND[it.cond] || COND.good).label) + '</b><br>If passed: ' +
+          (it.rejects === 'donate' ? 'donate for them' : 'post it back, free') + '</div>' +
+        (acc ? '<div class="it-price"><span>Pay $</span>' +
+          '<input type="number" min="0" max="9999" inputmode="numeric" value="' +
+          (it.price != null ? it.price : '') + '" data-itpay="' + i + '"></div>' : '') +
+      '</div>';
+    }).join('') +
+    '<div class="pad" id="own-total">' + ownerTotalHTML(sh) + '</div>';
+}
+
+// Its own function so a price edit can refresh the number without re-rendering
+// the inputs sitting under the caret.
+function ownerTotalHTML(sh){
+  const items  = sh.items || [];
+  const taken  = items.filter(function(it){ return it.accepted === true; });
+  const passed = items.filter(function(it){ return it.accepted === false; });
+  const todo   = items.length - taken.length - passed.length;
+  const total  = taken.reduce(function(n, it){ return n + (Number(it.price) || 0); }, 0);
+  const donated = passed.filter(function(it){ return it.rejects === 'donate'; }).length;
+  const back    = passed.length - donated;
+  const paid = (sh.status || 'sent') === 'paid';
+
+  // What happens to what you pass on is the half of the decision the seller
+  // cares about most, and the half that costs him return postage.
+  const fate = [];
+  if(back)    fate.push(back + ' posted back');
+  if(donated) fate.push(donated + ' donated');
+
+  return '<div class="sumline"><span>Taking <b>' + taken.length + '</b></span>' +
+           '<b class="sum-money">$' + total + '</b></div>' +
+         '<div class="sumline"><span>Passing <b>' + passed.length + '</b>' +
+           (fate.length ? ' \u00b7 ' + fate.join(', ') : '') + '</span><span></span></div>' +
+         (todo ? '<div class="sumline todo"><span><b>' + todo + '</b> still to decide</span>' +
+                 '<span></span></div>' : '') +
+         (paid
+           ? '<p class="empty" style="padding:8px 0 0">Marked paid \u00b7 $' + (sh.totalPaid || 0) +
+             '</p><button class="btn ghost" data-ownact="preview">See the email they got</button>'
+           : (todo
+               ? '<button class="btn primary" disabled style="opacity:.45;cursor:not-allowed">' +
+                 'Decide every item first</button>'
+               : '<button class="btn ghost" data-ownact="preview">Preview their email</button>' +
+                 '<button class="btn primary" data-ownact="paid">Mark paid \u00b7 $' + total +
+                 '</button>'));
+}
+
+// A copy of the template in netlify/functions/_email.js, which is the
+// canonical one - a browser cannot import a Netlify function, so with no build
+// step this is the cost. If the two ever disagree, _email.js wins.
+// PLACEHOLDER, and kept in step with the same constant in _email.js.
+// 'gmail' is not a domain, so this one does not actually work.
+const SUPPORT_EMAIL = 'supportemail@gmail';
+
+function previewEmail(sh){
+  const items  = sh.items || [];
+  const taken  = items.filter(function(it){ return it.accepted === true; });
+  const passed = items.filter(function(it){ return it.accepted === false; });
+  const total  = taken.reduce(function(n, it){ return n + (Number(it.price) || 0); }, 0);
+  const donated = passed.filter(function(it){ return it.rejects === 'donate'; });
+  const back    = passed.filter(function(it){ return it.rejects !== 'donate'; });
+
+  const row = function(it, right){
+    return '<tr><td style="padding:9px 0;border-bottom:1px solid #e8eae8">' +
+      '<b style="font-size:15px">' + esc(it.name) + '</b>' +
+      '<div style="font-size:12px;color:#6b756f;margin-top:2px">' + esc(it.type || 'Item') +
+      ' \u00b7 you said ' + esc((COND[it.cond] || COND.good).label) + '</div></td>' +
+      '<td style="padding:9px 0;border-bottom:1px solid #e8eae8;text-align:right;' +
+      'white-space:nowrap;font-size:14px">' + right + '</td></tr>';
+  };
+  const section = function(title, rows){
+    return rows ? '<p style="margin:26px 0 4px;font:600 12px/1 sans-serif;letter-spacing:.12em;' +
+      'text-transform:uppercase;color:#6b756f">' + title + '</p>' +
+      '<table style="width:100%;border-collapse:collapse">' + rows + '</table>' : '';
+  };
+
+  return '<!doctype html><body style="margin:0;background:#f4f6f4;color:#101311;' +
+    'font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">' +
+    '<div style="max-width:560px;margin:0 auto;padding:24px 20px 40px">' +
+      '<p style="margin:0 0 4px;font:600 11px/1 sans-serif;letter-spacing:.22em;' +
+        'text-transform:uppercase;color:#8b958f">KollectionCloset</p>' +
+      '<h1 style="margin:0 0 6px;font-size:23px;line-height:1.2">We\u2019ve been through your box.</h1>' +
+      '<p style="margin:0;font-size:13px;color:#6b756f">Reference ' + esc(sh.ref) + '</p>' +
+      '<div style="margin:22px 0;padding:18px;background:#0c7a46;border-radius:12px;color:#fff">' +
+        '<p style="margin:0;font-size:13px;opacity:.9">We\u2019re taking ' + taken.length +
+          ' of ' + items.length + ' items</p>' +
+        '<p style="margin:4px 0 0;font-size:30px;font-weight:700">$' + total + '</p>' +
+        '<p style="margin:6px 0 0;font-size:13px;opacity:.9">Going to your ' +
+          esc(sh.payMethod) + ' \u00b7 ' + esc(sh.payHandle) + '</p>' +
+      '</div>' +
+      section('What we took', taken.map(function(it){
+        return row(it, '<b>$' + (Number(it.price) || 0) + '</b>'); }).join('')) +
+      section('What we passed on', passed.map(function(it){
+        return row(it, '<span style="color:#6b756f">' +
+          (it.rejects === 'donate' ? 'Donated' : 'Posted back') + '</span>'); }).join('')) +
+      (donated.length ? '<p style="margin:18px 0 0;padding:13px;background:#e8f5ee;' +
+        'border-radius:10px;font-size:13px;line-height:1.55;color:#0c5c36">' +
+        '<b>' + donated.length + ' item' + (donated.length > 1 ? 's go' : ' goes') +
+        ' to charity, as you asked.</b> We don\u2019t sell it and we don\u2019t keep it as ' +
+        'stock. If something you marked donate turns out to be worth buying, we ask you ' +
+        'first and pay for it.</p>' : '') +
+      (back.length ? '<p style="margin:14px 0 0;font-size:13px;color:#6b756f;line-height:1.55">' +
+        back.length + ' item' + (back.length > 1 ? 's are' : ' is') +
+        ' on the way back to you, at no cost.</p>' : '') +
+      '<p style="margin:26px 0 0;font-size:13px;color:#6b756f;line-height:1.55">' +
+        'Payment usually lands within a couple of working days. Reply to this email if ' +
+        'anything here looks wrong \u2014 quote ' + esc(sh.ref) + ' and we\u2019ll pull the box up.</p>' +
+      '<p style="margin:22px 0 0;padding-top:18px;border-top:1px solid #e8eae8;' +
+        'font-size:13px;color:#6b756f;line-height:1.55">Questions? Email ' +
+        '<a href="mailto:' + SUPPORT_EMAIL + '" style="color:#0c7a46">' +
+        SUPPORT_EMAIL + '</a></p>' +
+    '</div>';
+}
+
+// The seller-facing sample. Invented items, because somebody reading "how it
+// works" has not sent anything yet - the point is the shape and the wording.
+const SAMPLE_BOX = {
+  ref: 'KC-4TQ9WB', payMethod: 'Zelle', payHandle: 'you@example.com',
+  items: [
+    // `rejects`, not `rej`: issueLabel renames the field on the way from a box
+    // line to a shipment item, and this renderer reads the shipment shape.
+    { name:'lululemon', type:'Leggings', cond:'like', rejects:'return', accepted:true,  price:59 },
+    { name:'Madewell',  type:'Jeans',    cond:'good', rejects:'return', accepted:true,  price:22 },
+    { name:'Gap',       type:'Tops',     cond:'fair', rejects:'donate', accepted:false },
+  ],
+};
+let mailBack = 'ownintake';
+function showMail(sh, backTo, title){
+  mailBack = backTo;
+  document.querySelector('#s-ownmail .back').dataset.go = backTo;
+  document.querySelector('#s-ownmail .ttl').textContent = title;
+  document.getElementById('mailview').srcdoc = previewEmail(sh);
+  go('ownmail');
+}
+(function(){
+  const b = document.getElementById('see-mail');
+  if(b) b.onclick = function(){ showMail(SAMPLE_BOX, 'how', 'Your Email'); };
+})();
+
+function ownerAct(action){
+  const all = ownerShipments();
+  const sh = all.find(function(x){ return x.ref === ownRef; });
+  if(!sh) return;
+  if(action === 'preview'){ showMail(sh, 'ownintake', 'Their Email'); return; }
+  if(action === 'received') sh.status = 'received';
+  if(action === 'paid'){
+    sh.status = 'paid';
+    sh.totalPaid = (sh.items || []).reduce(function(n, it){
+      return n + (it.accepted ? (Number(it.price) || 0) : 0); }, 0);
+    // TODO(email): this is the moment the seller gets told what was taken and
+    // what was sent. It is the message he would otherwise hand-type per box.
+  }
+  putShipments(all); paintOwnerIntake();
+}
+
+function setItem(i, v){
+  const all = ownerShipments();
+  const sh = all.find(function(x){ return x.ref === ownRef; });
+  if(!sh || !sh.items || !sh.items[i]) return;
+  sh.items[i].accepted = (v === 'y');
+  if(v === 'n') sh.items[i].price = null;
+  if(sh.status === 'sent' || sh.status === 'received') sh.status = 'assessed';
+  putShipments(all); paintOwnerIntake();
+}
+function setItemPrice(i, raw){
+  const all = ownerShipments();
+  const sh = all.find(function(x){ return x.ref === ownRef; });
+  if(!sh || !sh.items || !sh.items[i]) return;
+  sh.items[i].price = Math.max(0, Math.min(9999, parseInt(raw, 10) || 0));
+  putShipments(all);
+  const el = document.getElementById('own-total');
+  if(el) el.innerHTML = ownerTotalHTML(sh);
+}
+
+// ---- wiring --------------------------------------------------------------
+document.addEventListener('click', function(e){
+  const bs = e.target.closest('[data-ownset]');
+  if(bs){ const p = bs.dataset.ownset.split('|'); setBrandStatus(p[0], p[1]); return; }
+  const is = e.target.closest('[data-itset]');
+  if(is){ const p = is.dataset.itset.split('|'); setItem(+p[0], p[1]); return; }
+  const oa = e.target.closest('[data-ownact]');
+  if(oa){ ownerAct(oa.dataset.ownact); return; }
+  const or = e.target.closest('[data-ownref]');
+  if(or){ ownRef = or.dataset.ownref; paintOwnerIntake(); return; }
+});
+// change, not input: repainting mid-keystroke would steal the caret.
+document.addEventListener('change', function(e){
+  const bx = e.target.closest('[data-bxset]');
+  if(bx){ const p = bx.dataset.bxset.split('|'); setLine(p[0], p[1], bx.value); return; }
+  const op = e.target.closest('[data-ownpay]');
+  if(op){ const p = op.dataset.ownpay.split('|'); setBrandPay(p[0], p[1], op.value); return; }
+  const ip = e.target.closest('[data-itpay]');
+  if(ip){ setItemPrice(+ip.dataset.itpay, ip.value); return; }
+});
+(function(){
+  const q = document.getElementById('own-q');
+  if(q) q.oninput = function(){ ownQ = q.value; paintOwnerBrands(); };
+  const r = document.getElementById('own-reset');
+  if(r) r.onclick = function(){
+    for(const b of brands){
+      const d = BRAND_DEFAULTS[b.id];
+      b.status = d.status; b.tier = d.tier; b.payLo = d.payLo; b.payHi = d.payHi;
+    }
+    ownerEdits = {};
+    saveOwnerEdits(); paintOwnerBrands();
+  };
+})();
+
+// ---------------------------------------------------------------------------
+// Fitting a real phone
+// ---------------------------------------------------------------------------
+// Lifted from the Stolen Spaceship build, which had to solve this for a canvas.
+// Its comment is the part that matters: visualViewport is the only reliable
+// size inside iOS WKWebView - innerHeight can transiently report about half the
+// screen during launch - and iOS often only settles the real viewport a few
+// hundred ms after load, so a single measurement on load can lock in a wrong
+// size permanently. Hence a re-fit schedule rather than one call.
+function fitApp(){
+  const vv = window.visualViewport;
+  const h = (vv && vv.height) || window.innerHeight ||
+            document.documentElement.clientHeight || 0;
+  if(h) document.documentElement.style.setProperty('--apph', h + 'px');
+}
+let refitPending = false;
+function scheduleRefit(){
+  if(refitPending) return;
+  refitPending = true;
+  requestAnimationFrame(function(){ refitPending = false; fitApp(); });
+  setTimeout(fitApp, 120);
+  setTimeout(fitApp, 400);
+}
+fitApp();
+scheduleRefit();
+addEventListener('resize', scheduleRefit);
+addEventListener('orientationchange', scheduleRefit);
+if(window.visualViewport){
+  visualViewport.addEventListener('resize', scheduleRefit);
+  visualViewport.addEventListener('scroll', scheduleRefit);
+}
+
+paintBrowse(); paintStats(); paintAccount(); paintOwnerHub(); go('home');
+</script>

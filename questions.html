@@ -1,0 +1,273 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Before We Build</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    /* Cool paper with a slate bias, and one saturated accent that does all the
+       signalling. Deliberately not the app's palette - this is a document, and
+       it should not pretend to be the product. */
+    --paper:   #fbfbfc;
+    --paper-2: #f1f3f6;
+    --ink:     #14181d;
+    --ink-2:   #454f5b;
+    --ink-3:   #7d8792;
+    --line:    #dfe3e9;
+    --accent:  #1d6f6a;
+    --accent-bg:#e6f2f0;
+    --flag:    #b5451b;
+    --flag-bg: #fceee8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#14171b; --paper-2:#1c2026; --ink:#eef1f4; --ink-2:#aeb7c0;
+      --ink-3:#7d8792; --line:#2b3138;
+      --accent:#5fc2b8; --accent-bg:#11302e;
+      --flag:#f0855c; --flag-bg:#33190f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14171b; --paper-2:#1c2026; --ink:#eef1f4; --ink-2:#aeb7c0;
+    --ink-3:#7d8792; --line:#2b3138;
+    --accent:#5fc2b8; --accent-bg:#11302e;
+    --flag:#f0855c; --flag-bg:#33190f;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font:400 16px/1.65 'Public Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding-block:52px 72px;
+        padding-left:20px; padding-right:20px}
+
+  header{border-bottom:2px solid var(--ink); padding-bottom:22px; margin-bottom:34px}
+  .eyebrow{font:600 11.5px/1 'Public Sans',sans-serif; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 12px}
+  h1{font:600 42px/1.05 'Fraunces', Georgia, serif; margin:0 0 14px;
+     letter-spacing:-.015em; text-wrap:balance}
+  header p{margin:0; color:var(--ink-2); font-size:16.5px; max-width:58ch}
+
+  .lede{background:var(--paper-2); border-left:3px solid var(--accent);
+    padding:17px 20px; margin:0 0 40px; font-size:15px; color:var(--ink-2); line-height:1.6}
+  .lede b{color:var(--ink); font-weight:600}
+
+  section{margin-bottom:44px}
+  h2{font:600 13px/1 'Public Sans',sans-serif; letter-spacing:.14em; text-transform:uppercase;
+     color:var(--ink-3); margin:0 0 6px}
+  .sub{margin:0 0 22px; color:var(--ink-2); font-size:14.5px; max-width:58ch}
+
+  ol{list-style:none; counter-reset:q; margin:0; padding:0;
+     display:flex; flex-direction:column; gap:22px}
+  li{counter-increment:q; display:grid; grid-template-columns:34px 1fr; gap:14px}
+  li::before{
+    content:counter(q); grid-row:span 2;
+    font:600 13px/28px 'Public Sans',sans-serif; text-align:center;
+    width:28px; height:28px; border-radius:50%;
+    background:var(--paper-2); color:var(--ink-3); border:1px solid var(--line);
+  }
+  li.key::before{background:var(--accent); border-color:var(--accent); color:#fff}
+  .q{font:600 17.5px/1.45 'Public Sans',sans-serif; margin:1px 0 5px; text-wrap:balance}
+  .why{margin:0; color:var(--ink-2); font-size:14.5px; line-height:1.6}
+  .why em{font-style:normal; color:var(--ink); font-weight:600}
+
+  .tag{display:inline-block; margin-left:7px; padding:2px 8px; border-radius:999px;
+    font:600 10.5px/1.6 'Public Sans',sans-serif; letter-spacing:.06em; text-transform:uppercase;
+    background:var(--accent-bg); color:var(--accent); vertical-align:2px}
+
+  .flagbox{background:var(--flag-bg); border-radius:10px; padding:18px 20px; margin:0 0 40px}
+  .flagbox h3{font:600 13px/1 'Public Sans',sans-serif; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--flag); margin:0 0 9px}
+  .flagbox p{margin:0 0 10px; font-size:15px; color:var(--ink-2); line-height:1.6}
+  .flagbox p:last-child{margin:0}
+  .flagbox b{color:var(--ink)}
+
+  table{width:100%; border-collapse:collapse; margin:4px 0 0; font-size:14.5px}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{font:600 11.5px/1 'Public Sans',sans-serif; letter-spacing:.09em; text-transform:uppercase;
+     color:var(--ink-3); border-bottom:1.5px solid var(--line)}
+  td:first-child{font-weight:600; white-space:nowrap}
+  .tablewrap{overflow-x:auto}
+
+  footer{border-top:1px solid var(--line); margin-top:8px; padding-top:22px;
+    color:var(--ink-3); font-size:14px}
+  footer b{color:var(--ink-2)}
+
+  @media (max-width:520px){
+    h1{font-size:33px}
+    li{grid-template-columns:26px 1fr; gap:11px}
+    li::before{width:24px; height:24px; line-height:24px; font-size:12px}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">KollectionCloset</p>
+    <h1>Before we build the thing</h1>
+    <p>Eighteen questions, biggest first. Most take a sentence. Together they
+       decide what gets built, what it costs, and how long it takes.</p>
+  </header>
+
+  <p class="lede">There's a working prototype you can play with already &mdash; scan a tag,
+     search the list, edit brands. <b>It's a rough draft on purpose.</b> Everything below
+     is a decision the prototype had to guess at, and every guess is cheap to change now
+     and expensive to change later. <b>The first five are the ones blocking everything
+     else</b> &mdash; if you only answer part of this, answer those.</p>
+
+  <section>
+    <h2>The five that decide the rest</h2>
+    <p class="sub">Nothing real gets built until these are settled.</p>
+    <ol>
+      <li class="key">
+        <div>
+          <p class="q">Who opens this most &mdash; you and your staff, or the public?</p>
+          <p class="why">This one changes the most, because two different people want two almost opposite apps. Your staff working a haul want <em>speed</em>: three letters, an answer, next item, two hundred times. Someone selling you one jacket wants <em>clarity</em> and will happily take a photo. Serving both is fine &mdash; we just need to know which one we're optimising for.</p>
+        </div>
+      </li>
+      <li class="key">
+        <div>
+          <p class="q">Website or app?</p>
+          <p class="why">My honest view: <em>start with the website.</em> Someone clearing out a closet will not install an app to check one jacket &mdash; but they'll tap a link. Your staff can still save it to their home screen and it behaves like an app. If it gets used and the camera turns out to be the limit, we build the app then, knowing it's worth it. Comparison below.</p>
+        </div>
+      </li>
+      <li class="key">
+        <div>
+          <p class="q">Someone gets a yes. What do you want them to do next?</p>
+          <p class="why">The app answers &ldquo;do we buy this brand&rdquo; and then stops dead. That's the biggest hole in it and only you can fill it. Walk in? Post it? Book a time? Right now it leaves someone holding a jacket with nowhere to go &mdash; at the exact moment they're most likely to act.</p>
+        </div>
+      </li>
+      <li class="key">
+        <div>
+          <p class="q">How many brands, and who keeps the list current?</p>
+          <p class="why">The list is the actual product; the scanner is a convenience layer on top of it. A stale list doesn't go quiet &mdash; it actively misinforms people. If nobody owns updating it, that's worth knowing now.</p>
+        </div>
+      </li>
+      <li class="key">
+        <div>
+          <p class="q">What do you pay, and how &mdash; cash, store credit, consignment split?</p>
+          <p class="why">The second thing every seller asks, and the app can't answer it. It also decides whether they bother coming at all.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>For question 2 &mdash; website or app</h2>
+    <p class="sub">The same job, two different shapes.</p>
+    <div class="tablewrap">
+      <table>
+        <tr><th></th><th>Website (works on phones)</th><th>App Store app</th></tr>
+        <tr><td>Getting to it</td><td>Tap a link, or scan a QR by the till</td><td>Search a store, install, open</td></tr>
+        <tr><td>Updates</td><td>Live in seconds</td><td>New version, reviewed by Apple</td></tr>
+        <tr><td>Approval</td><td>None needed</td><td>Apple reviews it, and can refuse</td></tr>
+        <tr><td>Reading tags</td><td>Good</td><td>Better — Apple's own text recognition</td></tr>
+        <tr><td>Cost</td><td>Lower</td><td>Higher, plus $99/year</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Everything else</h2>
+    <p class="sub">Useful whenever you get to them. &ldquo;Don't know yet&rdquo;
+       is a real answer &mdash; it tells us what to leave flexible.</p>
+    <ol start="6">
+      <li>
+        <div>
+          <p class="q">What's the one thing it has to do on day one &mdash; and by when?</p>
+          <p class="why">Everything else can come later. Knowing the single non-negotiable stops us building the wrong half first.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">What condition do you require?</p>
+          <p class="why">&ldquo;We accept lululemon&rdquo; and &ldquo;we accept lululemon with a hole in it&rdquo; are different promises. Without stated standards you get bags of unsellable clothes and an awkward conversation at the counter.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Who types in every spelling of every brand name?</p>
+          <p class="why">The unglamorous one that decides whether scanning works at all. The app has to know that &ldquo;Polo Ralph Lauren&rdquo;, &ldquo;RLX&rdquo; and &ldquo;Lauren&rdquo; are all Ralph Lauren &mdash; and somebody has to enter that, once, for a few hundred brands. It's days of work and it's invisible on any spec.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">When you take in stock, how many pieces at once?</p>
+          <p class="why">A handful and a hundred need different screens. At volume nobody is photographing anything &mdash; it becomes a typing tool with a running count.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">How often does the brand list change &mdash; weekly, seasonally, rarely?</p>
+          <p class="why">Rarely means the list can ship inside the app. Weekly means it has to live somewhere you can edit without a new release.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Are the tags usually still attached, or cut off and faded?</p>
+          <p class="why">Deadstock and retail returns still have barcodes, which scan instantly and skip the whole problem. Thrift and estate hauls don't, and that's the harder case. Which do you mostly handle?</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Will you process a single item, or is there a minimum?</p>
+          <p class="why">If there's a threshold, saying so after the first scan saves somebody a trip.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Are there brands you take only in some categories?</p>
+          <p class="why">Coach bags yes, Coach shoes no &mdash; that sort of thing. The prototype supports it; we just need to know whether it's real for you.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">If you stop buying a brand while someone's already driving over &mdash; what then?</p>
+          <p class="why">Decides whether a yes is a quote you'll honour or just information. Worth settling before it happens, not after.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Are you comfortable with your buy list being public?</p>
+          <p class="why">Anyone can read it, including competitors. It tells them exactly what you're sourcing. Probably fine &mdash; but it should be a decision, not a side effect.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">If it's the public &mdash; are they cleaning out a closet, or shopping?</p>
+          <p class="why">Someone standing in a thrift store deciding whether to buy something to flip to you is a completely different user from someone emptying a wardrobe at home. The first needs an answer in four seconds in a shop aisle.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">Roughly how many people a week would use it?</p>
+          <p class="why">Ten and two thousand are built differently. It also decides whether anything needs paying for per use.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="q">What phones do you and your staff carry?</p>
+          <p class="why">Only matters for the app route. A website works the same on everything.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <div class="flagbox">
+    <h3>Two things worth knowing up front</h3>
+    <p><b>Nobody can promise Apple will approve an app.</b> Reviews get refused with
+       boilerplate that doesn't say what was wrong, and it can take weeks to sort out.
+       If we go the app route, we'd be agreeing to <b>submit it</b> and handle the
+       back-and-forth — not to guarantee a launch date. This is another reason the website
+       route is attractive: there's nobody to ask.</p>
+    <p><b>The Apple account should be in your name</b>, not mine — your details, your
+       card, your business. It means you own the app outright and nothing is stuck with me
+       if you ever want to take it elsewhere.</p>
+  </div>
+
+  <footer>
+    <p><b>Answer what you can</b> — even "don't know yet" is useful, because it tells us
+       what to leave flexible. The first five are the ones I need before
+       anything real gets built.</p>
+  </footer>
+</div>
