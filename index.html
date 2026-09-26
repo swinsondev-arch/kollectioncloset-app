@@ -887,12 +887,56 @@
   html:not(.notes) .hero{flex:0 0 auto}
   html:not(.notes) .menu{flex:0 0 auto}
 
-  /* The lockup grows with the screen. Lower bound is what a 667px phone shows
-     today, upper bound stops a tall desktop column from ballooning. */
-  html:not(.notes) .mark{width:clamp(84px, 13vh, 116px); height:clamp(84px, 13vh, 116px)}
-  html:not(.notes) .wordmark{font-size:clamp(18px, 2.35vh, 21px)}
-  html:not(.notes) .headline{font-size:clamp(27px, 4.3vh, 35px)}
-  html:not(.notes) .lede{font-size:clamp(13px, 1.65vh, 14.5px)}
+  /* Scaled against what is actually usable, not the raw viewport. On a phone
+     Safari's bars take ~100px before anything is drawn and the notch and home
+     indicator take ~80 more that the hero and tab bar pad around - so vh
+     sized the lockup for 844px of room when it had nearer 660, and the
+     bottom of the menu fell off. */
+  html:not(.notes){--avail: calc(var(--apph, 100dvh) - var(--sat) - var(--sab))}
+  html:not(.notes) .mark{width:clamp(66px, calc(var(--avail) * .118), 104px);
+                         height:clamp(66px, calc(var(--avail) * .118), 104px)}
+  html:not(.notes) .wordmark{font-size:clamp(15px, calc(var(--avail) * .0225), 20px)}
+  html:not(.notes) .headline{font-size:clamp(24px, calc(var(--avail) * .040), 33px)}
+  html:not(.notes) .lede{font-size:clamp(12.5px, calc(var(--avail) * .0165), 14px)}
+  /* The paddings have to come in too, or the type shrinks into the same box. */
+  html:not(.notes) .hero{
+    padding-top:calc(clamp(14px, calc(var(--avail) * .030), 28px) + var(--sat));
+    padding-bottom:clamp(13px, calc(var(--avail) * .024), 20px)}
+  html:not(.notes) .menu{gap:clamp(6px, calc(var(--avail) * .012), 10px);
+    padding-bottom:clamp(9px, calc(var(--avail) * .016), 14px)}
+  html:not(.notes) .cta{padding:clamp(15px, calc(var(--avail) * .025), 21px) 18px}
+
+  /* Short screens: the menu's padding is fixed, so scaling only the hero
+     still overflowed by 54px at 664 and 113 on an SE. Everything comes in,
+     and the lede goes - it is the one line that repeats what the headline
+     and the buttons already say. */
+  html.short:not(.notes) .lede{display:none}
+  html.short:not(.notes) .wordmark{margin-top:11px}
+  html.short:not(.notes) .rule{margin-top:9px}
+  html.short:not(.notes) .headline{margin-top:11px}
+  html.short:not(.notes) .herostat{margin-top:10px}
+  html.short:not(.notes) .hero{padding-top:calc(12px + var(--sat)); padding-bottom:13px}
+  html.short:not(.notes) .menu{gap:6px; padding:9px 16px 9px}
+  html.short:not(.notes) .cta{padding:14px 18px}
+  html.short:not(.notes) .tile{padding:11px 12px 10px}
+  html.short:not(.notes) .tile svg{margin-bottom:7px; padding:6px}
+  html.short:not(.notes) .boxcard,
+  html.short:not(.notes) .acctrow{padding:10px 12px}
+  html.short:not(.notes) .quiet{margin-top:2px}
+  html.short:not(.notes) .quiet button{padding:5px 9px}
+
+  /* Below ~600 usable the lockup is already on its floor, so the savings have
+     to come from the menu: the icon chips and the subtitles. The tiles become
+     plain labelled buttons, which at this size reads better than a 34px chip
+     crowding a 17px label. */
+  html.tiny:not(.notes) .tile svg{display:none}
+  html.tiny:not(.notes) .tile small,
+  html.tiny:not(.notes) .acctrow .ar-tx small,
+  html.tiny:not(.notes) .boxcard .bc-tx small{display:none}
+  html.tiny:not(.notes) .tile{padding:14px 12px}
+  html.tiny:not(.notes) .boxcard,
+  html.tiny:not(.notes) .acctrow{padding:12px}
+  html.tiny:not(.notes) .herostat{display:none}
 
   /* On a wide screen a full-bleed phone UI looks stretched, so it sits in a
      column the width of a large handset - what a mobile-first web app does. */
@@ -3198,7 +3242,17 @@ function fitApp(){
   const vv = window.visualViewport;
   const h = (vv && vv.height) || window.innerHeight ||
             document.documentElement.clientHeight || 0;
-  if(h) document.documentElement.style.setProperty('--apph', h + 'px');
+  if(!h) return;
+  const r = document.documentElement;
+  r.style.setProperty('--apph', h + 'px');
+  // Usable height, once the notch and the home indicator have taken theirs.
+  // A CSS media query cannot be used for this: on iOS it reads the LARGE
+  // viewport, which is the number that was wrong in the first place.
+  const cs = getComputedStyle(r);
+  const px = v => parseFloat(cs.getPropertyValue(v)) || 0;
+  const avail = h - px('--sat') - px('--sab');
+  r.classList.toggle('short', avail < 715);
+  r.classList.toggle('tiny',  avail < 600);
 }
 let refitPending = false;
 function scheduleRefit(){
