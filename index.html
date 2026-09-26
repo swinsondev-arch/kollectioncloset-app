@@ -137,7 +137,7 @@
   .navbar .ttl{font:600 15px/1 'Figtree', sans-serif; flex:1; text-align:center}
   .navbar .spacer{width:30px}
 
-  .body{flex:1 1 auto; overflow-y:auto; overflow-x:hidden;
+  .body{flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
     -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
   .pad{padding:0 18px 18px}
 
@@ -151,7 +151,12 @@
   .tabbar svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.7}
 
   /* ---------- screens ---------- */
-  .screen{display:none; flex-direction:column; height:100%}
+  /* min-height:0 matters more than it looks. A flex item defaults to
+     min-height:auto and will not shrink below its content, so without this
+     .screen holds its full height, shoves .tabbar past the bottom, and
+     .screenbox's overflow:hidden clips it away. Costs nothing when
+     everything fits; it is the whole difference when it does not. */
+  .screen{display:none; flex-direction:column; height:100%; min-height:0}
   .screen.on{display:flex}
 
   /* The hidden attribute loses to any author rule that sets display, and half
@@ -853,16 +858,18 @@
   html:not(.notes) .statusbar{display:none}
 
   html:not(.notes) body{background:var(--paper)}
-  /* inset:0 alone. It pins all four edges and the browser sizes the box to the
-     fixed-position containing block correctly, iOS included. An explicit
-     height here overrides the bottom:0 edge - and since visualViewport
-     measures the VISUAL viewport while a fixed element lays out against the
-     LAYOUT one, the two disagreeing pushed the tab bar off the screen.
+  /* NOT position:fixed. On iOS Safari a fixed element is laid out against the
+     LARGE viewport - the screen as if the browser bars were absent - and the
+     bars are then drawn over it, so the bottom of the app, and with it the
+     tab bar, ends up underneath the toolbar. Desktop never shows this because
+     there the large and small viewports are the same.
 
-     --apph stays as a MAX-height, which can only shrink the app, never
-     overflow it: that is what keeps the signup fields above the keyboard. */
-  html:not(.notes) .wrap{max-width:none; margin:0; padding:0;
-    position:fixed; inset:0; max-height:var(--apph, none)}
+     Normal flow with a dynamic viewport height instead. Three declarations,
+     worst to best; a browser keeps the last one it understands. */
+  html:not(.notes) .wrap{max-width:none; margin:0; padding:0; position:static;
+    height:100vh;
+    height:100dvh;
+    height:var(--apph, 100dvh)}
   html:not(.notes) .stagerow{display:block; height:100%; gap:0}
   html:not(.notes) .phone{width:100%; max-width:none; height:100%;
     background:none; border-radius:0; padding:0; box-shadow:none; position:static}
@@ -887,6 +894,7 @@
   @media (min-width:620px){
     html:not(.notes) body{background:var(--stage)}
     html:not(.notes) .wrap{padding:22px 16px}
+    html:not(.notes) .stagerow{height:100%}
     /* Capped, because a phone UI stretched down a 1300px window puts the
        logo in the middle of nothing. Behaves like a tall handset instead. */
     html:not(.notes) .phone{max-width:460px; max-height:920px; margin:auto;
