@@ -504,6 +504,16 @@
   .blist li{display:flex; align-items:center; gap:12px; padding:12px 18px;
     border-bottom:1px solid var(--line); cursor:pointer}
   .blist li:hover{background:var(--paper-2)}
+  /* Always white, in both themes. Most brand marks are black on transparent
+     because they were drawn for paper, so on a dark screen they would be an
+     empty square. Contain rather than cover: a wide wordmark cropped square
+     loses the name, which is the part you need. */
+  .logochip{background:#fff; display:grid; place-items:center; flex:0 0 auto;
+    border:1px solid var(--line); overflow:hidden}
+  .logochip img{width:100%; height:100%; object-fit:contain; display:block}
+  .blist .logochip{width:38px; height:38px; border-radius:9px; padding:4px}
+  .brandlogo{width:84px; height:84px; border-radius:18px; margin:0 auto 14px; padding:9px}
+
   .mono{width:38px; height:38px; border-radius:9px; flex:0 0 auto; display:grid;
     place-items:center; background:var(--paper-2); border:1px solid var(--line);
     font:700 13px/1 'Figtree', sans-serif; color:var(--text-2); letter-spacing:-.02em}
@@ -710,10 +720,15 @@
   .shipsub{margin:0 0 18px;font-size:13.5px;color:var(--text-2,#5a5750);line-height:1.55}
   .fieldlab{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
             color:var(--text-3,#8b8880);margin:0 0 6px}
+  /* --card and --accent are from an older palette and were never defined, so
+     this box was always hard white while the text inherited the theme colour -
+     near-white in dark mode, on white. The other inputs in the app use --paper
+     and --text and never had the problem. */
   .field{width:100%;padding:13px 14px;font-size:16px;border-radius:10px;
-         border:1.5px solid var(--line,#ddd9d1);background:var(--card,#fff);
-         color:inherit;font-family:inherit}
-  .field:focus{outline:none;border-color:var(--accent,#2f6f5e)}
+         border:1.5px solid var(--line);background:var(--paper);
+         color:var(--text);font-family:inherit}
+  .field::placeholder{color:var(--text-3);opacity:1}
+  .field:focus{outline:none;border-color:var(--accept)}
   .fieldnote{margin:7px 0 0;font-size:12.5px;color:#b5451b}
   #ship-go{margin-top:16px}
   .shipfine{margin:14px 0 0;font-size:12px;color:var(--text-3,#8b8880);line-height:1.5}
@@ -761,7 +776,7 @@
     :root:not([data-theme="light"]) .dmg-v.maybe{background:#332a12;color:#d8b54e}
   }
   .dmgcheck{margin-top:24px;padding:16px 18px;border-radius:12px;
-            background:var(--card-2,rgba(128,128,128,.07))}
+            background:var(--paper-2)}
   .dmgcheck h4{margin:0 0 9px;font-size:13px}
   .dmgcheck ul{margin:0;padding-left:17px}
   .dmgcheck li{font-size:13px;line-height:1.65;color:var(--text-2,#5a5750)}
@@ -1140,6 +1155,52 @@
 
 
         <!-- JOIN · the profile every seller needs -->
+        <section class="screen" id="s-signin">
+          <div class="navbar">
+            <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Sign in</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="shipwrap">
+              <h3>Sign in, or start an account</h3>
+              <p class="shipsub">Same thing either way. Put in your email and we&rsquo;ll send
+                 you a link. <b>There is no password</b> &mdash; nothing to remember, and
+                 nothing of yours to leak.</p>
+
+              <label class="fieldlab" for="si-email">Email</label>
+              <input class="field" id="si-email" type="email" inputmode="email"
+                     autocomplete="email" placeholder="you@example.com">
+              <p class="fieldnote" id="si-err" hidden>That doesn&rsquo;t look like an email.</p>
+
+              <button class="btn primary" id="si-go" style="margin-top:18px">Email me a link</button>
+              <p class="shipfine">We never ask for a password or a card number.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="s-sent">
+          <div class="navbar">
+            <button class="back" data-go="signin" aria-label="Back">&lsaquo;</button>
+            <span class="ttl">Check your email</span><span class="spacer"></span>
+          </div>
+          <div class="body">
+            <div class="shipwrap">
+              <h3>Check your email</h3>
+              <p class="shipsub">We sent a link to <b id="sent-addr">you</b>. Open it on this
+                 phone and you&rsquo;re in. It lasts an hour.</p>
+              <div class="callout info" style="margin-left:0;margin-right:0">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>
+                <span>Nothing there after a minute? Check spam. New senders end up
+                      there until enough people say otherwise.</span>
+              </div>
+              <div class="btnstack">
+                <button class="btn ghost" id="sent-again">Send it again</button>
+                <button class="btn ghost" data-go="signin">Use a different address</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="screen" id="s-join">
           <div class="navbar">
             <button class="back" data-go="home" aria-label="Back">&lsaquo;</button>
@@ -1149,18 +1210,17 @@
             <div class="shipwrap">
               <h3 id="join-title">Create your account</h3>
               <p class="shipsub" id="join-sub">So we can send your label, keep track of your
-                 boxes, and pay you. It takes one screen and there is no password &mdash; we
-                 email you a link when you want to sign in.</p>
+                 boxes, and pay you. One screen, and you only do it once.</p>
 
               <label class="fieldlab" for="join-name">Name</label>
               <input class="field" id="join-name" type="text" autocomplete="name"
                      placeholder="Sam Winson">
               <p class="fieldnote" id="join-name-err" hidden>We need a name for the box.</p>
 
-              <label class="fieldlab" for="join-email" style="margin-top:16px">Email</label>
-              <input class="field" id="join-email" type="email" inputmode="email"
-                     autocomplete="email" placeholder="you@example.com">
-              <p class="fieldnote" id="join-email-err" hidden>That doesn&rsquo;t look like an email.</p>
+              <label class="fieldlab" style="margin-top:16px">Email</label>
+              <!-- Shown, not editable. The email IS the account; retyping it here
+                   would quietly detach these details from the sign-in. -->
+              <p class="field" id="join-email" style="color:var(--text-2)">&mdash;</p>
 
               <label class="fieldlab" style="margin-top:20px">How would you like to be paid?</label>
               <div class="payseg" id="join-seg">
@@ -1542,7 +1602,7 @@
               </button>
             </div>
             <div class="pad">
-              <button class="btn ghost" id="own-reset">Put the buy list back to its defaults</button>
+              <button class="btn ghost" id="own-reset">Put every price back to how it loaded</button>
             </div>
           </div>
         </section>
@@ -1557,6 +1617,8 @@
             <div class="pad" style="padding-bottom:4px">
               <div class="search"><input id="own-q" placeholder="Find a brand..." autocomplete="off"></div>
             </div>
+            <p class="fieldnote" id="own-note" hidden
+               style="margin:0 18px 8px"></p>
             <div id="own-list"></div>
           </div>
         </section>
@@ -1883,18 +1945,60 @@ function shrink(dataURI, px, q){
     im.src = dataURI;
   });
 }
-// Straight from the source on every load. Nothing edits the list on-device any
-// more, so keeping a cached copy would only let whatever a browser saw FIRST
-// shadow the real list for good - and there is no screen left to fix that from.
+// SEED is now the FALLBACK, not the source. The real list lives in the
+// database so the owner can change a price without anyone redeploying
+// anything. This copy only ever gets used if the database cannot be reached,
+// because an empty brand list reads as a broken app and a slightly stale one
+// does not.
 let brands = SEED.slice();
+
+// Column names on the way in. The database uses snake_case; the matcher and
+// twenty screens use the app's names, and translating in one place keeps it
+// that way.
+function brandFromRow(r){
+  return {
+    id: r.id, name: r.name, status: r.status, category: r.category,
+    itemTypes: r.item_types || '', styles: r.styles || '',
+    aliases: r.aliases || '', excludes: r.excludes || '', note: r.note || '',
+    tier: r.tier, payLo: r.pay_lo || 0, payHi: r.pay_hi || 0,
+    logo: r.logo_url || '', refs: [],
+  };
+}
+
+// Reading the list needs no session: the buy list is public, and the policy
+// says so. Somebody checking whether a brand is worth sending should not have
+// to make an account first.
+async function loadBrands(){
+  if(!ONLINE) return false;
+  try {
+    const rows = await api('/rest/v1/brands?select=*&order=name');
+    if(!rows || !rows.length) return false;     // empty table: keep the fallback
+    brands = rows.map(brandFromRow);
+    rebuildIndex();
+    // The owner's local overrides were edits on top of the SEED copy. The
+    // database rows already carry them, so keeping them would apply the same
+    // change twice.
+    ownerEdits = {};
+    try { localStorage.removeItem(OWNKEY); } catch(e){}
+    return true;
+  } catch(err){
+    console.error('[brands]', err);
+    return false;
+  }
+}
 
 // Records saved by an earlier version predate fields added since. Backfill only
 // where the key is genuinely ABSENT - an empty string is a decision someone
 // a deliberate blank, and re-populating it would silently undo that.
-for(const b of brands){
-  if(b.excludes === undefined) b.excludes = EXCLUDES[b.name] || '';
-  if(!Array.isArray(b.refs))   b.refs     = [];
+// Anything derived from the list has to be redone when the list is replaced,
+// or the matcher keeps answering from the old one.
+function rebuildIndex(){
+  for(const b of brands){
+    if(b.excludes === undefined) b.excludes = EXCLUDES[b.name] || '';
+    if(!Array.isArray(b.refs))   b.refs     = [];
+  }
 }
+rebuildIndex();
 
 // ---- owner demo: edits to the buy list ----------------------------------
 // Snapshotted BEFORE any override lands, so "reset" has somewhere to go back
@@ -1905,6 +2009,9 @@ const BRAND_DEFAULTS = {};
 for(const b of brands)
   BRAND_DEFAULTS[b.id] = { status:b.status, tier:b.tier, payLo:b.payLo, payHi:b.payHi };
 
+// Edits used to be kept here as overrides on top of the built-in list. The
+// list lives in the database now and the owner writes straight to it, so this
+// only still exists to clear anything an older version of the app left behind.
 let ownerEdits = {};
 try { ownerEdits = JSON.parse(localStorage.getItem(OWNKEY) || '{}') || {}; } catch(e){ ownerEdits = {}; }
 for(const b of brands){
@@ -2088,13 +2195,13 @@ const SAMPLES = [
 const SCREENS = [
   ['home','1 · Home'], ['camera','2 · Scan'], ['scanning','3 · Reading'],
   ['result','4/5 · Verdict'], ['unsure','6 · Not sure'], ['manual','No tag'],
-  ['join','Sign up'], ['account','Account'], ['box','Your box'], ['damage','Condition'], ['ship','Get label'], ['label','Shipment'],
+  ['signin','Sign in'], ['sent','Link sent'], ['join','Your details'], ['account','Account'], ['box','Your box'], ['damage','Condition'], ['ship','Get label'], ['label','Shipment'],
   ['browse','7 · Browse'], ['detail','7b · Brand'], ['how','How it works'], ['about','Settings'],
   ['owner','Owner demo'], ['ownbrands','• Buy list'], ['ownintake','• Intake'],
   ['ownmail','• Their email'],
 ];
 const TAB_FOR = { box:'home', ship:'home', label:'home', damage:'home',
-                  join:'account', account:'account',
+                  signin:'account', sent:'account', join:'account', account:'account',
                   home:'home', camera:'camera', scanning:'camera', result:'browse',
                   unsure:'camera', manual:'camera', browse:'browse', detail:'browse',
                   how:'home', about:'home',
@@ -2106,7 +2213,12 @@ function go(name){
   // BEFORE anything else in here. The Account tab exists whether or not you
   // have an account, and redirecting after the screens have swapped shows the
   // empty profile for a frame and then argues with itself.
-  if(name === 'account' && !user) name = 'join';
+  // Three states, not two. No session means sign in; a session with nothing
+  // filled in means finish the details; otherwise the account itself.
+  if(name === 'account'){
+    if(!session) name = 'signin';
+    else if(!profileComplete(user)) name = 'join';
+  }
   // Same reasoning one step further out. A brand page is normally rendered by
   // tapping a row in Browse; the jump chips navigate without rendering, so
   // this chip alone would land on a blank phone. showDetail fills the element
@@ -2132,6 +2244,7 @@ function go(name){
          : getComputedStyle(document.body).getPropertyValue('--paper').trim() || '#ffffff');
   document.getElementById('tabbar').hidden = (name === 'camera' || name === 'scanning');
   if(name === 'ship') paintShipConfirm();
+  if(name === 'join') paintJoin();
   if(name === 'owner') paintOwnerHub();
   if(name === 'ownbrands') paintOwnerBrands();
   // Landing on the list rather than wherever it was left last time.
@@ -2150,6 +2263,59 @@ setTimeout(function(){
   const h = document.querySelector('.home');
   if(h) h.classList.remove('intro');
 }, 3300);
+
+// ---- signing in ----------------------------------------------------------
+// The address the session belongs to. Read from the token rather than stored
+// separately, so it can never disagree with who is actually signed in.
+function accountEmail(){ return claim('email'); }
+
+let pendingEmail = '';
+
+async function requestLink(email){
+  const btn = document.getElementById('si-go');
+  const err = document.getElementById('si-err');
+  btn.disabled = true;
+  btn.textContent = 'Sending\u2026';
+  try {
+    await sendMagicLink(email);
+    pendingEmail = email;
+    document.getElementById('sent-addr').textContent = email;
+    go('sent');
+  } catch(e){
+    err.textContent = e.message;
+    err.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Email me a link';
+  }
+}
+
+(function(){
+  const field = document.getElementById('si-email');
+  const err   = document.getElementById('si-err');
+  const go1   = document.getElementById('si-go');
+  if(!field || !go1) return;
+
+  function submit(){
+    const email = field.value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    err.textContent = 'That doesn\u2019t look like an email.';
+    err.hidden = ok;
+    if(!ok) return field.focus();
+    requestLink(email);
+  }
+  go1.onclick = submit;
+  field.onkeydown = function(e){ if(e.key === 'Enter') submit(); };
+
+  const again = document.getElementById('sent-again');
+  if(again) again.onclick = function(){
+    if(!pendingEmail) return go('signin');
+    again.disabled = true;
+    again.textContent = 'Sent again';
+    sendMagicLink(pendingEmail).catch(function(e){ console.error('[magic link]', e); });
+    setTimeout(function(){ again.disabled = false; again.textContent = 'Send it again'; }, 20000);
+  };
+})();
 
 const jump = document.getElementById('jump');
 for(const [id,label] of SCREENS){
@@ -2389,7 +2555,13 @@ try { user = JSON.parse(localStorage.getItem(USERKEY) || 'null'); } catch(e){ us
 // has: everything on this device, nothing leaves it. Filling these two values in
 // is the entire switch onto the real database. No screen changes either way,
 // which is the point - it means the demo link keeps working while this is built.
-const SUPA = { url: '', anon: '' };
+const SUPA = {
+  url : 'https://kefloguuwbflgsezzxlr.supabase.co',
+  // Supabase's new name for the anon key. Safe in a browser BECAUSE row
+  // level security is on and every table denies by default - it is not a
+  // secret, it is an identifier for which project to talk to.
+  anon: 'sb_publishable_7qUSJML-v7E26feaLxtMPw_-9fxgZkz',
+};
 const ONLINE = Boolean(SUPA.url && SUPA.anon);
 
 // ---- session -------------------------------------------------------------
@@ -2450,61 +2622,107 @@ async function refreshSession(){
 
 // Every call that needs a signed-in user. Refreshes a minute BEFORE expiry, so
 // a request never dies on a token that expired while it was in flight.
+//
+// A path starting /rest/ or /auth/ goes straight to the database. Anything else
+// is one of the two server functions. Direct is the default BECAUSE the policies
+// are real: the database refuses another person's row whatever the browser asks
+// for, so putting a function in front of it would add a hop and a second place
+// to write the same rule down.
 async function api(path, opts){
   if(session && session.expires_at - Date.now() < 60000) await refreshSession();
   const o = opts || {};
+  const direct = path.indexOf('/rest/') === 0 || path.indexOf('/auth/') === 0;
   const h = Object.assign({ 'content-type': 'application/json' }, o.headers || {});
+  if(direct) h.apikey = SUPA.anon;
   if(session) h.authorization = 'Bearer ' + session.access_token;
-  const r = await fetch(path, Object.assign({}, o, { headers: h }));
+  const r = await fetch((direct ? SUPA.url : '') + path, Object.assign({}, o, { headers: h }));
   if(r.status === 401){ saveSession(null); throw new Error('Signed out. Sign in again.'); }
+  if(r.status === 204) return null;
   const body = await r.json().catch(function(){ return null; });
-  if(!r.ok) throw new Error((body && body.error) || ('Request failed (' + r.status + ')'));
+  if(!r.ok){
+    // PostgREST and the functions word their errors differently.
+    const msg = body && (body.error || body.message || body.hint);
+    throw new Error(msg || ('Request failed (' + r.status + ')'));
+  }
   return body;
 }
+
+// One decoder for the token, because two of them is two places to get base64url
+// wrong. A direct query has to name the row it wants, where a function could
+// have worked it out from the token itself.
+function claim(key){
+  if(!session || !session.access_token) return '';
+  try {
+    const part = session.access_token.split('.')[1];
+    return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/')))[key] || '';
+  } catch(e){ return ''; }
+}
+function accountId(){ return claim('sub'); }
 
 // ---- where the profile lives --------------------------------------------
 // Both stores answer the same two calls, so nothing above this line has to know
 // which one is running.
-const localStore = {
-  loadProfile: async function(){
-    try { return JSON.parse(localStorage.getItem(USERKEY) || 'null'); } catch(e){ return null; }
-  },
-  saveProfile: async function(p){
-    try { p ? localStorage.setItem(USERKEY, JSON.stringify(p))
-            : localStorage.removeItem(USERKEY); } catch(e){}
-    return p;
-  },
-};
-
 // The database spells these differently to the app. Translating in one place
 // keeps the column names out of twenty screens.
 function fromRow(d){
   return { name: d.name, email: d.email, payMethod: d.payout_method,
-           payHandle: d.payout_handle, since: Date.parse(d.created_at) || Date.now() };
+           payHandle: d.payout_handle, isStaff: Boolean(d.is_staff),
+           since: Date.parse(d.created_at) || Date.now() };
 }
+
+// Whether to DRAW the controls, nothing more. The database decides whether a
+// write is allowed, and refuses it regardless of what the app believes.
+function isStaff(){ return Boolean(user && user.isStaff); }
+
+const PROFILE_COLS = 'id,email,name,payout_method,payout_handle,created_at,is_staff';
 
 const remoteStore = {
   loadProfile: async function(){
-    if(!session) return null;
-    return fromRow(await api('/api/profile'));
+    const id = accountId();
+    if(!id) return null;
+    // The filter is belt and braces. The policy already limits this to the
+    // caller's own row; naming it makes the query say what it means.
+    const rows = await api('/rest/v1/profiles?select=' + PROFILE_COLS +
+                           '&id=eq.' + id + '&deleted_at=is.null');
+    return (rows && rows[0]) ? fromRow(rows[0]) : null;
   },
+
   saveProfile: async function(p){
+    const id = accountId();
+    if(!id) return null;
+
     if(!p){
-      // Deleting the account does NOT delete the shipments. They are his
-      // financial records and they outlive the profile.
-      await api('/api/profile', { method: 'DELETE' });
+      // Deleting an account does NOT delete the shipments: they are his
+      // financial records and they outlive the profile. So this is a soft
+      // delete that blanks the personal fields, not a DELETE.
+      await api('/rest/v1/profiles?id=eq.' + id, {
+        method : 'PATCH',
+        headers: { prefer: 'return=minimal' },
+        body   : JSON.stringify({ name: '', payout_handle: '' }),
+      });
       saveSession(null);
       return null;
     }
-    return fromRow(await api('/api/profile', {
-      method: 'PUT',
-      body  : JSON.stringify({ name: p.name, payout_method: p.payMethod,
-                               payout_handle: p.payHandle }),
-    }));
+
+    const rows = await api('/rest/v1/profiles?id=eq.' + id +
+                           '&select=' + PROFILE_COLS, {
+      method : 'PATCH',
+      headers: { prefer: 'return=representation' },
+      body   : JSON.stringify({ name: p.name, payout_method: p.payMethod,
+                                payout_handle: p.payHandle }),
+    });
+    return (rows && rows[0]) ? fromRow(rows[0]) : p;
   },
 };
 
-const store = ONLINE ? remoteStore : localStore;
+const store = remoteStore;
+
+// A fresh account has a row but no details: the database makes one the moment
+// somebody signs in. Having an account and having filled it in are different
+// states and the app has to tell them apart.
+function profileComplete(p){
+  return Boolean(p && p.name && p.payHandle);
+}
 
 const BOXKEY = 'kc_box_v1', SHIPKEY = 'kc_shipments_v1';
 let lastVerdict = null;
@@ -2723,6 +2941,8 @@ document.addEventListener('click', function(e){
   }
   const rm = e.target.closest('[data-rmbox]');
   if(rm){ removeFromBox(rm.dataset.rmbox); return; }
+  const lc = e.target.closest('[data-logoclear]');
+  if(lc){ clearLogo(lc.dataset.logoclear); return; }
   const rj = e.target.closest('[data-rejset]');
   if(rj){ const p = rj.dataset.rejset.split('|'); setRej(p[0], p[1]); return; }
   if(e.target.closest('#box-clear')){ box = []; saveBox(); paintBox(); return; }
@@ -2869,41 +3089,59 @@ function paintAccount(){
       handle.placeholder = HINT[m];
     };
   }
-  // Coming back to edit should show what is already there, not an empty form.
-  document.getElementById('acc-edit').addEventListener('click', function(){
+  // Painting belongs to the SCREEN, not to the one button that used to be the
+  // only way in. A magic link now lands people here directly, and so does the
+  // Account tab when the account exists but is empty.
+  window.paintJoin = function(){
+    // Always show which account this is filling in. Without it somebody can
+    // complete the form without ever seeing who they are signed in as.
+    const em = document.getElementById('join-email');
+    if(em) em.textContent = accountEmail() || (user && user.email) || '\u2014';
+
+    const filled = profileComplete(user);
+    document.getElementById('join-title').textContent =
+      filled ? 'Your details' : 'Finish your account';
+    document.getElementById('join-sub').textContent = filled
+      ? 'Change any of this. It applies to boxes you send from now on.'
+      : 'You are signed in. We just need a name and somewhere to send your money.';
+    document.getElementById('join-go').textContent = filled ? 'Save' : 'Done';
+
     if(!user) return;
-    document.getElementById('join-name').value = user.name;
-    document.getElementById('join-email').value = user.email;
-    document.getElementById('join-handle').value = user.payHandle;
-    m = user.payMethod;
+    document.getElementById('join-name').value = user.name || '';
+    document.getElementById('join-handle').value = user.payHandle || '';
+    m = user.payMethod || m;
     for(const o of document.querySelectorAll('.payopt[data-jpay]'))
       o.classList.toggle('on', o.dataset.jpay === m);
     handle.placeholder = HINT[m];
-    document.getElementById('join-title').textContent = 'Your details';
-    document.getElementById('join-sub').textContent =
-      'Change any of this. It applies to boxes you send from now on.';
-    document.getElementById('join-go').textContent = 'Save';
-  });
+  };
 
   document.getElementById('join-go').onclick = function(){
     const name = document.getElementById('join-name').value.trim();
-    const email = document.getElementById('join-email').value.trim();
     const h = handle.value.trim();
-    const nOK = name.length >= 2, eOK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email), hOK = h.length >= 4;
+    const nOK = name.length >= 2, hOK = h.length >= 4;
     document.getElementById('join-name-err').hidden = nOK;
-    document.getElementById('join-email-err').hidden = eOK;
     document.getElementById('join-handle-err').hidden = hOK;
     if(!nOK) return document.getElementById('join-name').focus();
-    if(!eOK) return document.getElementById('join-email').focus();
     if(!hOK) return handle.focus();
-    user = { name: name, email: email, payMethod: m, payHandle: h,
-             since: Date.now() };
+    // The email is not read from a field any more. It belongs to the session,
+    // and the account is what it identifies.
+    user = { name: name, email: (user && user.email) || accountEmail(),
+             payMethod: m, payHandle: h, since: (user && user.since) || Date.now() };
     saveUser();
     go(pendingShip ? 'ship' : 'account');
     pendingShip = false;
   };
 
-  document.getElementById('acc-out').onclick = function(){ user = null; saveUser(); go('home'); };
+  // Signing out drops the session AND the device copy. Leaving the cached
+  // profile behind would show the next person on this phone somebody else's
+  // name and payout handle.
+  document.getElementById('acc-out').onclick = function(){
+    saveSession(null);
+    user = null;
+    try { localStorage.removeItem(USERKEY); } catch(e){}
+    paintAccount(); paintBox();
+    go('home');
+  };
 })();
 
 // Set when the box sent somebody to sign up, so they land back on the label
@@ -2926,6 +3164,101 @@ for(const c of CATS){
 }
 document.getElementById('q').oninput = paintBrowse;
 
+// Written out rather than guessed. Deriving a domain from a brand name gets
+// thenorthface.com right and arcteryx.com wrong, and a wrong domain fetches
+// somebody else's real logo, which is worse than showing none.
+const BRAND_DOMAIN = {
+  'lululemon':'lululemon.com', 'Nike':'nike.com', 'adidas':'adidas.com',
+  'Alo Yoga':'aloyoga.com', 'Athleta':'athleta.gap.com', 'Vuori':'vuoriclothing.com',
+  'Under Armour':'underarmour.com', 'Gymshark':'gymshark.com',
+  'Patagonia':'patagonia.com', 'The North Face':'thenorthface.com',
+  'Arc\u2019teryx':'arcteryx.com', 'Columbia':'columbia.com', 'Carhartt':'carhartt.com',
+  'Levi\u2019s':'levi.com', 'Madewell':'madewell.com', 'Free People':'freepeople.com',
+  'Anthropologie':'anthropologie.com', 'Reformation':'thereformation.com',
+  'Aritzia':'aritzia.com', 'J.Crew':'jcrew.com', 'Everlane':'everlane.com',
+  'Banana Republic':'bananarepublic.gap.com', 'American Eagle':'ae.com',
+  'Champion':'champion.com', 'Dr. Martens':'drmartens.com',
+  'Birkenstock':'birkenstock.com', 'New Balance':'newbalance.com',
+  'Hoka':'hoka.com', 'On Running':'on.com', 'Ugg':'ugg.com', 'Coach':'coach.com',
+  'Kate Spade':'katespade.com', 'Tory Burch':'toryburch.com',
+  'Lucky Brand':'luckybrand.com', 'Eddie Bauer':'eddiebauer.com',
+  'Ralph Lauren':'ralphlauren.com', 'Tommy Hilfiger':'tommy.com',
+  'Zara':'zara.com', 'H&M':'hm.com', 'Shein':'shein.com',
+  'Forever 21':'forever21.com', 'Old Navy':'oldnavy.gap.com', 'Primark':'primark.com',
+  'Fashion Nova':'fashionnova.com', 'Boohoo':'boohoo.com',
+  'Wonder Nation':'walmart.com', 'Time and Tru':'walmart.com',
+  'Athletic Works':'walmart.com', 'Xhilaration':'target.com',
+  'Faded Glory':'walmart.com', 'No Boundaries':'walmart.com',
+};
+
+// Neither source covers every domain, so both get a turn. No API key for
+// either: this runs once and then never again.
+function logoSources(domain){
+  return [
+    'https://icons.duckduckgo.com/ip3/' + domain + '.ico',
+    'https://www.google.com/s2/favicons?sz=256&domain=' + domain,
+  ];
+}
+
+// Draw it through a canvas, which both resizes it and proves it actually
+// decoded. A 404 from these services is often a valid tiny placeholder image
+// rather than an error, so size is the only honest test of whether it worked.
+function fetchLogo(url, size){
+  return new Promise(function(resolve, reject){
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = function(){
+      if(im.width < 32 || im.height < 32)
+        return reject(new Error('too small to be a logo (' + im.width + 'px)'));
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const g = c.getContext('2d');
+      const k = Math.min(size / im.width, size / im.height);
+      const w = im.width * k, h = im.height * k;
+      g.drawImage(im, (size - w) / 2, (size - h) / 2, w, h);
+      c.toBlob(function(b){ b ? resolve({ blob: b, from: url, px: im.width })
+                              : reject(new Error('could not encode')); }, 'image/png');
+    };
+    im.onerror = function(){ reject(new Error('blocked or missing')); };
+    im.src = url;
+  });
+}
+
+// Run from the console as staff. Deliberately not a button: it is a one-off,
+// and a button invites somebody to press it again later and overwrite logos
+// that were replaced by hand afterwards.
+async function importLogos(opts){
+  const only = (opts && opts.only) || null;
+  const done = [], failed = [];
+  for(const b of brands){
+    if(only && only.indexOf(b.name) < 0) continue;
+    if(b.logo && !(opts && opts.overwrite)) continue;
+    const domain = BRAND_DOMAIN[b.name];
+    if(!domain){ failed.push(b.name + ': no domain listed'); continue; }
+    let got = null;
+    for(const src of logoSources(domain)){
+      try { got = await fetchLogo(src, 256); break; } catch(e){ /* try the next */ }
+    }
+    if(!got){ failed.push(b.name + ': nothing usable'); continue; }
+    try {
+      const path = b.id + '.png';
+      const r = await fetch(SUPA.url + '/storage/v1/object/brand-logos/' + path, {
+        method:'POST',
+        headers:{ apikey: SUPA.anon, authorization: 'Bearer ' + session.access_token,
+                  'content-type':'image/png', 'x-upsert':'true' },
+        body: got.blob });
+      if(!r.ok) throw new Error('storage ' + r.status);
+      b.logo = SUPA.url + '/storage/v1/object/public/brand-logos/' + path + '?v=' + Date.now();
+      await api('/rest/v1/brands?id=eq.' + encodeURIComponent(b.id), {
+        method:'PATCH', headers:{ prefer:'return=minimal' },
+        body: JSON.stringify({ logo_url: b.logo }) });
+      done.push(b.name + ' (' + got.px + 'px)');
+    } catch(e){ failed.push(b.name + ': ' + e.message); }
+  }
+  paintBrowse();
+  return { imported: done.length, skippedOrFailed: failed.length, done, failed };
+}
+
 function initials(n){
   const p = n.replace(/[^\w\s]/g,'').split(/\s+/).filter(Boolean);
   return ((p[0]||'')[0] + (p[1]?p[1][0]:(p[0]||'')[1]||'')).toUpperCase();
@@ -2937,7 +3270,9 @@ function paintBrowse(){
 
   document.getElementById('blist').innerHTML = rows.length ? rows.map(b =>
     '<li data-id="'+b.id+'">'+
-      '<span class="mono">'+esc(initials(b.name))+'</span>'+
+      (b.logo
+        ? '<span class="logochip"><img src="'+esc(b.logo)+'" alt="" loading="lazy"></span>'
+        : '<span class="mono">'+esc(initials(b.name))+'</span>')+
       '<span class="tx"><b>'+esc(b.name)+'</b><small>'+
         (whyMatched.get(b.id) ? 'matched “'+esc(whyMatched.get(b.id))+'”' :
           esc(b.category)+(b.itemTypes?' · '+esc(b.itemTypes):''))+'</small></span>'+
@@ -2953,10 +3288,129 @@ function paintBrowse(){
   });
 }
 
+// The same controls as the buy-list screen, on the page he is already looking
+// at. Marked plainly, because it appears on a screen customers also see and
+// nothing should be ambiguous about who is looking.
+function staffEditBlock(b){
+  const yes = b.status === 'accepted';
+  const on = v => (b.status === v ? ' aria-pressed="true"' : ' aria-pressed="false"');
+  return '<div class="ownrow" style="border-top:1px solid var(--line);border-bottom:0;padding-top:16px">' +
+    '<p style="margin:0 0 10px;font:700 11px/1 \'Figtree\',sans-serif;letter-spacing:.14em;' +
+      'text-transform:uppercase;color:var(--text-3)">Only you can see this</p>' +
+    '<div class="or-top"><b>Do we buy it?</b><div class="or-seg">' +
+      '<button data-ownset="' + b.id + '|accepted"' + on('accepted') + '>Yes</button>' +
+      '<button data-ownset="' + b.id + '|rejected"' + on('rejected') + '>No</button>' +
+    '</div></div>' +
+    (yes ? '<div class="or-pay"><span>We pay $</span>' +
+      '<input type="number" min="0" max="999" inputmode="numeric" value="' + b.payLo +
+        '" data-ownpay="' + b.id + '|lo">' +
+      '<span>to $</span>' +
+      '<input type="number" min="0" max="999" inputmode="numeric" value="' + b.payHi +
+        '" data-ownpay="' + b.id + '|hi">' +
+    '</div>' : '') +
+    '<div class="or-pay" style="margin-top:12px">' +
+      '<span>Logo</span>' +
+      '<label class="btn ghost" style="width:auto;padding:7px 12px;font-size:12.5px;margin:0;cursor:pointer">' +
+        (b.logo ? 'Replace' : 'Add') +
+        '<input type="file" accept="image/*" data-logo="' + b.id + '" hidden>' +
+      '</label>' +
+      (b.logo ? '<button class="btn ghost" data-logoclear="' + b.id +
+                '" style="width:auto;padding:7px 12px;font-size:12.5px;margin:0">Remove</button>' : '') +
+    '</div>' +
+    '<p class="fieldnote" id="own-note-detail" hidden style="margin-top:9px"></p>' +
+  '</div>';
+}
+
+// Shrink it here, not there. A phone photo is several megabytes and a logo
+// wants to be tens of kilobytes, so doing this before the upload means the slow
+// upload never happens rather than happening and being discarded.
+//
+// PNG, not JPEG: a lot of logos are transparent and JPEG would fill that with
+// black. Contained inside the square for the same reason the chip contains it.
+function shrinkLogo(file, size){
+  return new Promise(function(resolve, reject){
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = function(){
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const g = c.getContext('2d');
+      const k = Math.min(size / im.width, size / im.height);
+      const w = im.width * k, h = im.height * k;
+      g.drawImage(im, (size - w) / 2, (size - h) / 2, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ b ? resolve(b) : reject(new Error('could not read that image')); },
+               'image/png');
+    };
+    im.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('that file is not an image')); };
+    im.src = url;
+  });
+}
+
+async function uploadLogo(id, file){
+  const b = brands.find(function(x){ return x.id === id; });
+  const note = document.getElementById('own-note-detail') || document.getElementById('own-note');
+  const say = function(msg){ if(note){ note.hidden = false; note.textContent = msg; } };
+  if(!b) return;
+  try {
+    say('Resizing\u2026');
+    const blob = await shrinkLogo(file, 256);
+    // Same name every time, so replacing a logo replaces the file rather than
+    // leaving the old one behind forever. upsert tells storage to allow that.
+    const path = id + '.png';
+    say('Uploading\u2026');
+    const r = await fetch(SUPA.url + '/storage/v1/object/brand-logos/' + path, {
+      method : 'POST',
+      headers: { apikey: SUPA.anon, authorization: 'Bearer ' + session.access_token,
+                 'content-type': 'image/png', 'x-upsert': 'true' },
+      body   : blob,
+    });
+    if(!r.ok){
+      const t = await r.text();
+      throw new Error(r.status === 403 || r.status === 401
+        ? 'storage refused it: this account is not staff'
+        : t.slice(0, 120));
+    }
+    // A version marker so a replaced logo does not keep showing the old one
+    // out of the browser cache.
+    b.logo = SUPA.url + '/storage/v1/object/public/brand-logos/' + path + '?v=' + Date.now();
+    await api('/rest/v1/brands?id=eq.' + encodeURIComponent(id), {
+      method : 'PATCH', headers: { prefer: 'return=minimal' },
+      body   : JSON.stringify({ logo_url: b.logo }),
+    });
+    if(note) note.hidden = true;
+    showDetail(b); paintBrowse();
+  } catch(err){
+    say('Logo not saved: ' + err.message);
+  }
+}
+
+async function clearLogo(id){
+  const b = brands.find(function(x){ return x.id === id; });
+  if(!b) return;
+  const note = document.getElementById('own-note-detail') || document.getElementById('own-note');
+  try {
+    await fetch(SUPA.url + '/storage/v1/object/brand-logos/' + id + '.png', {
+      method : 'DELETE',
+      headers: { apikey: SUPA.anon, authorization: 'Bearer ' + session.access_token },
+    });
+    b.logo = '';
+    await api('/rest/v1/brands?id=eq.' + encodeURIComponent(id), {
+      method : 'PATCH', headers: { prefer: 'return=minimal' },
+      body   : JSON.stringify({ logo_url: '' }),
+    });
+    if(note) note.hidden = true;
+    showDetail(b); paintBrowse();
+  } catch(err){
+    if(note){ note.hidden = false; note.textContent = 'Could not remove it: ' + err.message; }
+  }
+}
+
 function showDetail(b){
   const yes = b.status==='accepted';
   document.getElementById('detailbody').innerHTML =
     '<div class="brandhead">'+
+      (b.logo ? '<div class="logochip brandlogo"><img src="'+esc(b.logo)+'" alt=""></div>' : '')+
       '<h3 class="brandname">'+esc(b.name)+'</h3>'+
       '<p class="brandsub">'+esc(b.category)+'</p>'+
       '<span class="badge '+(yes?'yes':'no')+'" style="display:inline-block;margin-top:12px;padding:6px 13px">'+
@@ -2971,6 +3425,7 @@ function showDetail(b){
     (b.note ? '<div class="callout '+(yes?'info':'warn')+'">'+
       '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.2"/></svg>'+
       '<span><b>Note</b>'+esc(b.note)+'</span></div>' : '')+
+    (isStaff() ? staffEditBlock(b) : '') +
     '<div class="btnstack"><button class="btn ghost" data-go="browse">Back to all brands</button></div>';
   go('detail');
 }
@@ -3063,11 +3518,55 @@ function paintStats(){
 const SHIP_ST = { sent:['sent','On its way'], received:['recv','Received'],
                   assessed:['assd','Assessed'], paid:['paid','Paid'] };
 
-function saveOwnerEdits(){
-  try { localStorage.setItem(OWNKEY, JSON.stringify(ownerEdits)); } catch(e){}
-  // The seller's side reads the same array, so it has to be repainted now -
-  // otherwise a brand he just rejected still says Accepted on the next screen.
+// A brand he has just started buying needs SOME price. Its pay was zeroed when
+// it was rejected, and the original-list defaults do not cover anything added
+// since. Deliberately a round, obviously-placeholder pair rather than something
+// that looks researched.
+const DEFAULT_PAY = { lo: 12, hi: 28 };
+
+// Everything on the seller's side reads the same array, so a change has to
+// repaint it now - otherwise a brand he just rejected still says Accepted on
+// the very next screen.
+function repaintEverywhere(){
   paintStats(); paintBrowse(); paintBox(); paintOwnerHub();
+}
+
+// Writing needs a staff session. The database enforces that, not the app: this
+// just reports what it said.
+async function saveBrand(id){
+  const b = brands.find(function(x){ return x.id === id; });
+  if(!b) return;
+  // Either screen can be the one showing this brand.
+  const note = document.getElementById('own-note-detail') || document.getElementById('own-note');
+  try {
+    // return=representation, NOT minimal. A PATCH that matched no rows answers
+    // 204 either way, and row security makes it match no rows for anybody who
+    // is not staff - so without the row coming back, a refusal is
+    // indistinguishable from a save.
+    const rows = await api('/rest/v1/brands?id=eq.' + encodeURIComponent(id) +
+                           '&select=id,status,tier,pay_lo,pay_hi', {
+      method : 'PATCH',
+      headers: { prefer: 'return=representation' },
+      body   : JSON.stringify({ status: b.status, tier: b.tier,
+                                pay_lo: b.payLo, pay_hi: b.payHi }),
+    });
+    if(!rows || !rows.length) throw new Error('the database refused the change');
+    if(note){ note.hidden = true; }
+    return true;
+  } catch(err){
+    // Put it back. A price that looks saved and is not is worse than one that
+    // visibly refused.
+    const was = BRAND_DEFAULTS[id];
+    if(was){ b.status = was.status; b.tier = was.tier; b.payLo = was.payLo; b.payHi = was.payHi; }
+    if(note){
+      note.hidden = false;
+      note.textContent = !session
+        ? 'Not saved: sign in first.'
+        : 'Not saved: this account is not staff. ' + err.message;
+    }
+    paintOwnerBrands(); repaintEverywhere();
+    return false;
+  }
 }
 
 function setBrandStatus(id, status){
@@ -3075,22 +3574,36 @@ function setBrandStatus(id, status){
   if(!b) return;
   b.status = status;
   if(status === 'accepted'){
-    // Coming back from rejected: its pay was zeroed, so restore the default.
-    if(!b.payLo){ b.payLo = BRAND_DEFAULTS[id].payLo; b.payHi = BRAND_DEFAULTS[id].payHi; }
-  } else { b.payLo = 0; b.payHi = 0; }
-  ownerEdits[id] = { status:b.status, payLo:b.payLo, payHi:b.payHi };
-  saveOwnerEdits(); paintOwnerBrands();
+    // Its pay was zeroed when it was rejected. Put back whatever it had
+    // before, or the placeholder if it never had one.
+    if(!b.payLo){
+      const was = BRAND_DEFAULTS[id];
+      b.payLo = (was && was.payLo) || DEFAULT_PAY.lo;
+      b.payHi = (was && was.payHi) || DEFAULT_PAY.hi;
+      if(!b.tier) b.tier = (was && was.tier) || 'standard';
+    }
+  } else {
+    // A rejected brand pays nothing. Leaving an old price on it would show a
+    // figure next to a brand nobody is buying.
+    b.payLo = 0; b.payHi = 0; b.tier = null;
+  }
+  paintOwnerBrands(); repaintEverywhere();
+  // Redraw whichever screen the change was made on. The brand page shows the
+  // price as well as the controls, so leaving it stale shows the old number
+  // next to the new setting.
+  if(current === 'detail') showDetail(brands.find(function(x){ return x.id === id; }));
+  saveBrand(id);
 }
 
 function setBrandPay(id, which, raw){
   const b = brands.find(function(x){ return x.id === id; });
   if(!b) return;
-  let v = Math.max(0, Math.min(999, parseInt(raw, 10) || 0));
+  const v = Math.max(0, Math.min(999, parseInt(raw, 10) || 0));
   if(which === 'lo') b.payLo = v; else b.payHi = v;
   // A low above a high would quote "$40 to $12" on the seller's screen.
   if(b.payHi < b.payLo){ if(which === 'lo') b.payHi = b.payLo; else b.payLo = b.payHi; }
-  ownerEdits[id] = { status:b.status, payLo:b.payLo, payHi:b.payHi };
-  saveOwnerEdits();
+  repaintEverywhere();
+  saveBrand(id);
 }
 
 function paintOwnerHub(){
@@ -3363,6 +3876,8 @@ document.addEventListener('click', function(e){
 });
 // change, not input: repainting mid-keystroke would steal the caret.
 document.addEventListener('change', function(e){
+  const lg = e.target.closest('[data-logo]');
+  if(lg && lg.files && lg.files[0]){ uploadLogo(lg.dataset.logo, lg.files[0]); return; }
   const bx = e.target.closest('[data-bxset]');
   if(bx){ const p = bx.dataset.bxset.split('|'); setLine(p[0], p[1], bx.value); return; }
   const op = e.target.closest('[data-ownpay]');
@@ -3374,13 +3889,25 @@ document.addEventListener('change', function(e){
   const q = document.getElementById('own-q');
   if(q) q.oninput = function(){ ownQ = q.value; paintOwnerBrands(); };
   const r = document.getElementById('own-reset');
-  if(r) r.onclick = function(){
+  if(r) r.onclick = async function(){
+    // BRAND_DEFAULTS is how the list looked when this page loaded, so only the
+    // rows that actually moved need putting back. Writing all fifty to undo
+    // three edits is fifty chances to fail for no reason.
+    const changed = [];
     for(const b of brands){
       const d = BRAND_DEFAULTS[b.id];
+      if(!d) continue;
+      if(b.status === d.status && b.tier === d.tier &&
+         b.payLo === d.payLo && b.payHi === d.payHi) continue;
       b.status = d.status; b.tier = d.tier; b.payLo = d.payLo; b.payHi = d.payHi;
+      changed.push(b.id);
     }
-    ownerEdits = {};
-    saveOwnerEdits(); paintOwnerBrands();
+    paintOwnerBrands(); repaintEverywhere();
+    r.disabled = true;
+    r.textContent = changed.length ? 'Putting ' + changed.length + ' back…' : 'Nothing to undo';
+    for(const id of changed) await saveBrand(id);
+    r.disabled = false;
+    r.textContent = 'Put every price back to how it loaded';
   };
 })();
 
@@ -3475,9 +4002,54 @@ if(/[?&]diag/.test(location.search)){
   setInterval(draw, 500);
 }
 
+// A magic link opens in a NEW tab: the mail client cannot hand it back to the
+// one that asked. So the tab left behind has to notice when the new one signs
+// in, or it sits on a sign-in form looking like the link did nothing.
+//
+// `storage` fires in every OTHER tab on this origin when one of them writes.
+addEventListener('storage', function(e){
+  if(e.key !== SESSKEY) return;
+  try { session = e.newValue ? JSON.parse(e.newValue) : null; } catch(err){ session = null; }
+  if(session){
+    syncProfile().then(function(){ go(profileComplete(user) ? 'account' : 'join'); });
+  } else {
+    user = null; paintAccount(); paintBox(); go('home');
+  }
+});
+
+// And coming back to a tab that was open the whole time, where nothing was
+// written while it was looking.
+addEventListener('visibilitychange', function(){
+  if(document.visibilityState !== 'visible' || !ONLINE) return;
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(SESSKEY) || 'null'); } catch(e){}
+  const had = (session && session.access_token) || null;
+  const now = (stored && stored.access_token) || null;
+  if(had === now) return;
+  session = stored;
+  if(session) syncProfile();
+  else { user = null; paintAccount(); paintBox(); }
+});
+
 // A magic link lands here with its tokens in the fragment. Read them before
 // anything paints, so the first frame already knows who is signed in.
-if(ONLINE){ captureSessionFromUrl(); syncProfile(); }
+// ONLINE is still the guard: with no url and key there is nothing to call, and
+// throwing a network error at somebody is worse than doing nothing quietly.
+const justSignedIn = ONLINE && captureSessionFromUrl();
+syncProfile().then(function(){
+  if(!justSignedIn) return;
+  // Straight to whatever is missing: details if the account is empty,
+  // otherwise the account itself. Landing back on Home after clicking a
+  // sign-in link feels like it did not work.
+  go(profileComplete(user) ? 'account' : 'join');
+});
+
+// The list first, then paint. Painting twice is cheap; showing somebody a
+// price that is not the real one is not.
+loadBrands().then(function(){
+  paintBrowse(); paintStats(); paintOwnerHub();
+  if(current === 'detail' || current === 'browse') paintBrowse();
+});
 
 paintBrowse(); paintStats(); paintAccount(); paintOwnerHub(); go('home');
 </script>
